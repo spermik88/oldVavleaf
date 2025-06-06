@@ -16,7 +16,7 @@ import {
   Pressable
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
+import { CameraView, CameraType, CameraViewRef, useCameraPermissions } from "expo-camera";
 import { router } from "expo-router";
 import { Settings, Image as ImageIcon, Camera, RefreshCw, MapPin } from "lucide-react-native";
 import * as Location from "expo-location";
@@ -49,7 +49,7 @@ const webviewRef = useRef<OpenCVHandle>(null);
   const [showCaptureAnimation, setShowCaptureAnimation] = useState(false);
   const [slideToGalleryAnimation] = useState(new Animated.Value(0));
   const [cameraReady, setCameraReady] = useState(false);
-  const cameraRef = useRef<any>(null);
+  const cameraRef = useRef<CameraViewRef>(null);
   const [pendingPhoto, setPendingPhoto] = useState<null | { photo: any; dateStr: string }>(null);
   const { capturedImages, addCapturedImage } = useLeafStore();
   const { highResolutionCapture, saveGpsData, manualFocusOnly } = useSettingsStore();
@@ -161,7 +161,7 @@ const captureAndSend = async () => {
   try {
     setProcessingFrame(true);
 
-    const photo = await cameraRef.current.takeSnapshotAsync({
+    const photo = await cameraRef.current.takePictureAsync({
       quality: 0.5,
       base64: true,
       skipMetadata: true,
