@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Leaf Analyzer</title>
+    <style>
+      body, html { margin:0; padding:0; overflow:hidden; }
+      #canvas { display:none; }
+    </style>
+  </head>
+  <body>
+    <canvas id="canvas"></canvas>
+    <script async src="opencv.js" onload="onOpenCvReady();"></script>
+    <script>
+      function onOpenCvReady() {
+        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'ready' }));
+      }
+
+      window.processImage = function(imageData, width, height, pxPerCell) {
+        try {
+          let img = new Image();
+          img.onload = () => {
+            let canvas = document.getElementById('canvas');
+            canvas.width = width; canvas.height = height;
+            let ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            let src = cv.imread(canvas);
+
+            let gray = new cv.Mat();
+            cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+            cv.GaussianBlur(gray, gray, new cv.Size(5,5), 0);
+            let edges = new cv.Mat();
+            cv.Canny(gray, edges, 50, 150);
+
+            let contours = new cv.MatVector();
+            let hierarchy = new cv.Mat();
+            cv.findContours(edges, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+ctx.lineWidth = 2;
+ctx.strokeStyle = "red";
+
+ctx.beginPath();
+for (let i = 0; i < contours.size(); ++i) {
+  const cnt = contours.get(i);
+  for (let j = 0; j < cnt.data32S.length; j += 2) {
+    const x = cnt.data32S[j];
+    const y = cnt.data32S[j + 1];
+    if (j === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+}
+ctx.stroke();
+            let maxArea = 0, cntIndex = 0;
+            for (let i = 0; i < contours.size(); ++i) {
+let points = [];
+for (let j = 0; j < cnt.data32S.length; j += 2) {
+  points.push({ x: cnt.data32S[j], y: cnt.data32S[j + 1] });
+}
+              let area = cv.contourArea(contours.get(i));
+              if (area > maxArea) { maxArea = area; cntIndex = i; }
+            }
+
+            let mm2 = maxArea * (25.0 / (pxPerCell * pxPerCell));
+            let cm2 = mm2 / 100.0;
+            let result = Math.round(cm2 * 100) / 100;
+
+            src.delete(); gray.delete(); edges.delete();
+            contours.delete(); hierarchy.delete();
+window.ReactNativeWebView.postMessage(JSON.stringify({
+  type: 'result',
+  area: result,
+  contour: points
+}));
+            window.ReactNativeWebView.postMessage(JSON.stringify({
+              type: 'result',
+              area: result
+            }));
+          };
+          img.src = 'data:image/png;base64,' + imageData;
+        } catch (e) {
+          window.ReactNativeWebView.postMessage(JSON.stringify({
+            type: 'error',
+            message: e.toString()
+          }));
+        }
+      };
+    </script>
+  </body>
+</html>
