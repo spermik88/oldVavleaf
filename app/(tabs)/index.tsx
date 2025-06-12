@@ -98,9 +98,8 @@ const webviewRef = useRef<OpenCVHandle>(null);
     setIsCapturing(false);
   };
 
-  const onWebViewMessage = (event: any) => {
+  const onWebViewMessage = ({ area, contour }: { area: number; contour?: any }) => {
     try {
-      const { area, contour } = JSON.parse(event.nativeEvent.data);
       if (typeof area === "number") {
         handleOpenCVResult(area, contour);
       }
@@ -521,7 +520,7 @@ const capturePhoto = async () => {
             <ImageIcon size={28} color={Colors.text.primary} />
           </Pressable>
         </View>
-<OpenCVWorker ref={webviewRef} onMessage={onWebViewMessage} />
+<OpenCVWorker ref={webviewRef} onResult={onWebViewMessage} />
       </CameraView>
     </View>
   );
