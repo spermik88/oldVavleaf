@@ -9,6 +9,7 @@ export type OpenCVHandle = {
 
 type Props = {
   onResult?: (result: { area: number; contour: { x: number; y: number }[] }) => void;
+  onReady?: () => void;
 };
 
 const OpenCVWorker = forwardRef((props: Props, ref) => {
@@ -44,22 +45,30 @@ const OpenCVWorker = forwardRef((props: Props, ref) => {
   const handleMessage = (event: any) => {
     const message = event.nativeEvent.data;
 
-    if (message === 'ready') {
+    let parsed: any = null;
+    try {
+      parsed = JSON.parse(message);
+    } catch (e) {
+      // ignore parse errors, message might be plain string
+    }
+
+    if (parsed?.type === 'ready' || message === 'ready') {
       readyRef.current = true;
       queueRef.current.forEach((item) =>
         injectProcessImage(item.base64, item.width, item.height, item.pxPerCell)
       );
       queueRef.current = [];
+      props.onReady?.();
       return;
     }
 
-    try {
-      const data = JSON.parse(message);
-      if (data.type === 'result') {
-        props.onResult?.({ area: data.area, contour: data.contour });
-      }
-    } catch (error) {
-      console.error('Ошибка WebView:', error);
+    if (parsed?.type === 'result') {
+      props.onResult?.({ area: parsed.area, contour: parsed.contour });
+      return;
+    }
+
+    if (parsed === null) {
+      console.error('Ошибка WebView: неверный формат сообщения');
     }
   };
 
