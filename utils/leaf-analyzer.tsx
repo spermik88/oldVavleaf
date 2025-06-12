@@ -6,11 +6,12 @@ export interface LeafAnalyzer {
 export type Point = { x: number; y: number };
 
 import * as FileSystem from "expo-file-system";
-import { Image, Alert } from "react-native";
+import { Image, Alert, View, ActivityIndicator, Text, StyleSheet } from "react-native";
 import OpenCVWorker, { OpenCVHandle } from "@/components/OpenCVWorker";
 import { analyzeLeafArea, findLeafContour } from "@/utils/camera-utils";
-import React, { createContext, useContext, useMemo, useRef } from "react";
+import React, { createContext, useContext, useMemo, useRef, useState } from "react";
 import { Platform } from "react-native";
+import Colors from "@/constants/colors";
 
 type QueueItem = {
   resolve: (
@@ -143,6 +144,7 @@ const LeafAnalyzerContext = createContext<LeafAnalyzer>(new FallbackAnalyzer());
 
 export const LeafAnalyzerProvider = ({ children }: { children: React.ReactNode }) => {
   const webRef = useRef<OpenCVHandle>(null);
+  const [isOpenCvReady, setOpenCvReady] = useState(false);
   const analyzer = useMemo<LeafAnalyzer>(() => {
     if (Platform.OS === "web") {
       return new FallbackAnalyzer();
@@ -166,6 +168,7 @@ export const LeafAnalyzerProvider = ({ children }: { children: React.ReactNode }
   const onReady = () => {
     if (analyzer instanceof OpenCvAnalyzer) {
       analyzer.setReady(true);
+      setOpenCvReady(true);
     }
   };
 
@@ -177,18 +180,46 @@ export const LeafAnalyzerProvider = ({ children }: { children: React.ReactNode }
 
   return (
     <LeafAnalyzerContext.Provider value={analyzer}>
-      {children}
-      {analyzer instanceof OpenCvAnalyzer && (
-        <OpenCVWorker
-          ref={webRef}
-          onResult={onResult}
-          onReady={onReady}
-          onError={onError}
-          debug={__DEV__}
-        />
-      )}
+      <>
+        {children}
+        {analyzer instanceof OpenCvAnalyzer && (
+          <>
+            <OpenCVWorker
+              ref={webRef}
+              onResult={onResult}
+              onReady={onReady}
+              onError={onError}
+              debug={__DEV__}
+            />
+            {!isOpenCvReady && (
+              <View style={styles.initOverlay}>
+                <ActivityIndicator size="large" color={Colors.primary} />
+                <Text style={styles.initText}>Инициализация…</Text>
+              </View>
+            )}
+          </>
+        )}
+      </>
     </LeafAnalyzerContext.Provider>
   );
 };
 
 export const useLeafAnalyzer = () => useContext(LeafAnalyzerContext);
+
+const styles = StyleSheet.create({
+  initOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 100,
+  },
+  initText: {
+    marginTop: 8,
+    color: Colors.text.primary,
+  },
+});
