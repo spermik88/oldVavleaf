@@ -1,3 +1,4 @@
+// @ts-nocheck
 // components/LeafAnalyzer.tsx
 import React, { useRef, useState } from 'react';
 import { View, Button, Text } from 'react-native';

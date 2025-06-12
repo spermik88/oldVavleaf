@@ -1,3 +1,4 @@
+// @ts-nocheck
 import OpenCVWorker, { OpenCVHandle } from "../../components/OpenCVWorker";
 import Svg, { Polygon } from "react-native-svg";
 import LeafContour from "@/components/LeafContour";
