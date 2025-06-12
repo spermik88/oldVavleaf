@@ -89,7 +89,12 @@ export const LeafAnalyzerProvider = ({ children }: { children: React.ReactNode }
     <LeafAnalyzerContext.Provider value={analyzer}>
       {children}
       {analyzer instanceof OpenCvAnalyzer && (
-        <OpenCVWorker ref={webRef} onResult={onResult} onReady={onReady} />
+        <OpenCVWorker
+          ref={webRef}
+          onResult={onResult}
+          onReady={onReady}
+          debug={__DEV__}
+        />
       )}
     </LeafAnalyzerContext.Provider>
   );

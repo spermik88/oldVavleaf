@@ -12,6 +12,14 @@
     <canvas id="canvas"></canvas>
     <script async src="opencv.js" onload="onOpenCvReady();"></script>
     <script>
+      let debug = false;
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('debug') === 'true') {
+        debug = true;
+      }
+      const canvasEl = document.getElementById('canvas');
+      canvasEl.style.display = debug ? 'block' : 'none';
+
       function onOpenCvReady() {
         cv['onRuntimeInitialized'] = () => {
           window.ReactNativeWebView.postMessage(
@@ -46,21 +54,24 @@
             let contours = new cv.MatVector();
             let hierarchy = new cv.Mat();
             cv.findContours(edges, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
-ctx.lineWidth = 2;
-ctx.strokeStyle = "red";
 
-ctx.beginPath();
-for (let i = 0; i < contours.size(); ++i) {
-  const cnt = contours.get(i);
-  for (let j = 0; j < cnt.data32S.length; j += 2) {
-    const x = cnt.data32S[j];
-    const y = cnt.data32S[j + 1];
-    if (j === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  }
-  ctx.closePath();
-}
-ctx.stroke();
+            if (debug) {
+              ctx.lineWidth = 2;
+              ctx.strokeStyle = "red";
+
+              ctx.beginPath();
+              for (let i = 0; i < contours.size(); ++i) {
+                const cnt = contours.get(i);
+                for (let j = 0; j < cnt.data32S.length; j += 2) {
+                  const x = cnt.data32S[j];
+                  const y = cnt.data32S[j + 1];
+                  if (j === 0) ctx.moveTo(x, y);
+                  else ctx.lineTo(x, y);
+                }
+                ctx.closePath();
+              }
+              ctx.stroke();
+            }
             let points = [];
             let maxArea = 0;
             for (let i = 0; i < contours.size(); ++i) {

@@ -8,6 +8,7 @@ export default function LeafAnalyzer() {
   const webViewRef = useRef(null);
   const [area, setArea] = useState(null);
   const [ready, setReady] = useState(false);
+  const debug = __DEV__;
 
   const handleMessage = (event) => {
     try {
@@ -42,7 +43,7 @@ export default function LeafAnalyzer() {
     <View style={{ flex: 1 }}>
       <WebView
         ref={webViewRef}
-        source={{ uri: 'http://localhost:8081/opencv.html' }}
+        source={{ uri: `http://localhost:8081/opencv.html${debug ? '?debug=true' : ''}` }}
         onMessage={handleMessage}
         javaScriptEnabled={true}
         originWhitelist={['*']}
