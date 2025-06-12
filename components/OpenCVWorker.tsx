@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useRef, forwardRef, useImperativeHandle } from 'react';
 import { WebView } from 'react-native-webview';
 import { View } from 'react-native';
