@@ -6,10 +6,11 @@ export interface LeafAnalyzer {
 export type Point = { x: number; y: number };
 
 import * as FileSystem from "expo-file-system";
-import { Image, Alert } from "react-native";
+import { Image, Alert, ActivityIndicator, View, Text, StyleSheet } from "react-native";
 import OpenCVWorker, { OpenCVHandle } from "@/components/OpenCVWorker";
 import { analyzeLeafArea, findLeafContour } from "@/utils/camera-utils";
-import React, { createContext, useContext, useMemo, useRef } from "react";
+import React, { createContext, useContext, useMemo, useRef, useState } from "react";
+import Colors from "@/constants/colors";
 import { Platform } from "react-native";
 
 type QueueItem = {
@@ -150,6 +151,8 @@ export const LeafAnalyzerProvider = ({ children }: { children: React.ReactNode }
     return new OpenCvAnalyzer(webRef);
   }, []);
 
+  const [isOpenCvReady, setIsOpenCvReady] = useState(Platform.OS === "web");
+
   const onResult = (
     res: {
       area: number;
@@ -166,6 +169,7 @@ export const LeafAnalyzerProvider = ({ children }: { children: React.ReactNode }
   const onReady = () => {
     if (analyzer instanceof OpenCvAnalyzer) {
       analyzer.setReady(true);
+      setIsOpenCvReady(true);
     }
   };
 
@@ -178,6 +182,12 @@ export const LeafAnalyzerProvider = ({ children }: { children: React.ReactNode }
   return (
     <LeafAnalyzerContext.Provider value={analyzer}>
       {children}
+      {analyzer instanceof OpenCvAnalyzer && !isOpenCvReady && (
+        <View style={styles.initOverlay} pointerEvents="none">
+          <ActivityIndicator size="large" color={Colors.text.primary} />
+          <Text style={styles.initText}>Инициализация…</Text>
+        </View>
+      )}
       {analyzer instanceof OpenCvAnalyzer && (
         <OpenCVWorker
           ref={webRef}
@@ -192,3 +202,17 @@ export const LeafAnalyzerProvider = ({ children }: { children: React.ReactNode }
 };
 
 export const useLeafAnalyzer = () => useContext(LeafAnalyzerContext);
+
+const styles = StyleSheet.create({
+  initOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 100,
+  },
+  initText: {
+    marginTop: 8,
+    color: Colors.text.primary,
+  },
+});
