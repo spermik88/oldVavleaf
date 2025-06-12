@@ -1,6 +1,5 @@
-// @ts-nocheck
 import React, { useRef, forwardRef, useImperativeHandle } from 'react';
-import { WebView } from 'react-native-webview';
+import { WebView, WebViewMessageEvent } from "react-native-webview";
 import { View } from 'react-native';
 import { Asset } from 'expo-asset';
 
@@ -53,7 +52,7 @@ const OpenCVWorker = forwardRef((props: Props, ref) => {
   };
 
   useImperativeHandle(ref, () => ({
-    sendImage(base64, width, height, pxPerCell) {
+    sendImage(base64: string, width: number, height: number, pxPerCell: number) {
       if (readyRef.current) {
         injectProcessImage(base64, width, height, pxPerCell);
       } else {
@@ -65,7 +64,7 @@ const OpenCVWorker = forwardRef((props: Props, ref) => {
     },
   }));
 
-  const handleMessage = (event: any) => {
+  const handleMessage = (event: WebViewMessageEvent) => {
     const message = event.nativeEvent.data;
 
     let parsed: any = null;
