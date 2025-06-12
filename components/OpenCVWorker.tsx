@@ -2,6 +2,7 @@
 import React, { useRef, forwardRef, useImperativeHandle } from 'react';
 import { WebView } from 'react-native-webview';
 import { View } from 'react-native';
+import { Asset } from 'expo-asset';
 
 export type OpenCVHandle = {
   sendImage: (base64: string, width: number, height: number, pxPerCell: number) => void;
@@ -27,6 +28,8 @@ const OpenCVWorker = forwardRef((props: Props, ref) => {
   const queueRef = useRef<
     { base64: string; width: number; height: number; pxPerCell: number }[]
   >([]);
+
+  const htmlUri = Asset.fromModule(require('../assets/opencv.html')).uri;
 
   const injectProcessImage = (
     base64: string,
@@ -97,8 +100,7 @@ const OpenCVWorker = forwardRef((props: Props, ref) => {
       <WebView
         ref={webViewRef}
         originWhitelist={['*']}
-        source={require('../assets/opencv.html')}
-        injectedJavaScript={`window.debug = ${props.debug ? 'true' : 'false'}; true;`}
+        source={{ uri: `${htmlUri}${props.debug ? '?debug=true' : ''}` }}
         onMessage={handleMessage}
         javaScriptEnabled={true}
       />
