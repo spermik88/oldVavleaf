@@ -12,6 +12,7 @@ type Props = {
   onResult?: (
     result: {
       area: number;
+      pxPerCell: number;
       contour: { x: number; y: number }[];
       contourCount: number;
       markerFound: boolean;
@@ -77,6 +78,7 @@ const OpenCVWorker = forwardRef((props: Props, ref) => {
     if (parsed?.type === 'result') {
       props.onResult?.({
         area: parsed.area,
+        pxPerCell: parsed.pxPerCell,
         contour: parsed.contour,
         contourCount: parsed.contourCount,
         markerFound: parsed.markerFound,

@@ -56,6 +56,7 @@
             cv.findContours(edges, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
             let contourCount = contours.size();
             let markerFound = false;
+            let calculatedPxPerCell = pxPerCell;
 
             for (let i = 0; i < contours.size(); ++i) {
               const cnt = contours.get(i);
@@ -81,10 +82,13 @@
                   areaR < pxPerCell * pxPerCell * 2
                 ) {
                   markerFound = true;
+                  calculatedPxPerCell = Math.sqrt(areaR);
                   break;
                 }
               }
             }
+
+            pxPerCell = calculatedPxPerCell;
 
             if (debug) {
               ctx.lineWidth = 2;
@@ -117,19 +121,18 @@
               }
             }
 
-            let mm2 = maxArea * (25.0 / (pxPerCell * pxPerCell));
-            let cm2 = mm2 / 100.0;
-            let result = Math.round(cm2 * 100) / 100;
+            let result = maxArea;
 
             src.delete(); gray.delete(); edges.delete();
             contours.delete(); hierarchy.delete();
-window.ReactNativeWebView.postMessage(JSON.stringify({
-  type: 'result',
-  area: result,
-  contour: points,
-  contourCount: contourCount,
-  markerFound: markerFound
-}));
+  window.ReactNativeWebView.postMessage(JSON.stringify({
+    type: 'result',
+    area: result,
+    pxPerCell: pxPerCell,
+    contour: points,
+    contourCount: contourCount,
+    markerFound: markerFound
+  }));
           };
           img.onerror = () => {
             window.ReactNativeWebView.postMessage(
