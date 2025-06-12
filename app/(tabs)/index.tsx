@@ -22,6 +22,7 @@ import { Settings, Image as ImageIcon, Camera, RefreshCw, MapPin } from "lucide-
 import * as Location from "expo-location";
 import * as FileSystem from "expo-file-system";
 import * as Haptics from "expo-haptics";
+import * as ImagePicker from "expo-image-picker";
 import Slider from "@react-native-community/slider";
 import Colors from "@/constants/colors";
 import { useLeafStore } from "@/store/leaf-store";
@@ -51,6 +52,29 @@ export default function CameraScreen() {
   const cameraRef = useRef<CameraViewRef>(null);
   const { capturedImages, addCapturedImage } = useLeafStore();
   const { highResolutionCapture, saveGpsData, manualFocusOnly } = useSettingsStore();
+
+  const pickImage = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 1,
+      });
+      if (result.canceled || !result.assets?.length) return;
+      setIsCapturing(true);
+      const uri = result.assets[0].uri;
+      const now = new Date();
+      const dateStr = `${now.getDate().toString().padStart(2, '0')}.${(now.getMonth() + 1)
+        .toString()
+        .padStart(2, '0')}.${now.getFullYear()}`;
+      const area = await analyzer.analyzeArea(uri, false);
+      const contour = await analyzer.findContour(uri);
+      await handleOpenCVResult(null, dateStr, area, contour);
+    } catch (error) {
+      console.error('Ошибка при выборе изображения:', error);
+      Alert.alert('Ошибка', 'Не удалось обработать изображение');
+      setIsCapturing(false);
+    }
+  };
 
 
   const handleOpenCVResult = async (
@@ -293,11 +317,14 @@ const capturePhoto = async () => {
         <Text style={styles.permissionText}>
           Для работы приложения необходим доступ к камере
         </Text>
-        <TouchableOpacity 
-          style={styles.permissionButton} 
+        <TouchableOpacity
+          style={styles.permissionButton}
           onPress={requestPermission}
         >
           <Text style={styles.permissionButtonText}>Разрешить доступ</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.permissionButton} onPress={pickImage}>
+          <Text style={styles.permissionButtonText}>Выбрать изображение</Text>
         </TouchableOpacity>
       </SafeAreaView>
     );
@@ -329,9 +356,16 @@ const capturePhoto = async () => {
             Эта функция доступна только в мобильном приложении.
             Пожалуйста, установите приложение на ваше устройство.
           </Text>
-          
+
+          <TouchableOpacity
+            style={styles.permissionButton}
+            onPress={pickImage}
+          >
+            <Text style={styles.permissionButtonText}>Выбрать изображение</Text>
+          </TouchableOpacity>
+
           <View style={styles.webButtonsContainer}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.webButton}
               onPress={navigateToSettings}
             >
