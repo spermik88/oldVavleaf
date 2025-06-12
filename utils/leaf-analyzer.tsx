@@ -6,11 +6,29 @@ export interface LeafAnalyzer {
 export type Point = { x: number; y: number };
 
 import * as FileSystem from "expo-file-system";
-import { Image } from "react-native";
+import { Image, Alert } from "react-native";
 import OpenCVWorker, { OpenCVHandle } from "@/components/OpenCVWorker";
 import { analyzeLeafArea, findLeafContour } from "@/utils/camera-utils";
 import React, { createContext, useContext, useMemo, useRef } from "react";
 import { Platform } from "react-native";
+
+type QueueItem = {
+  resolve: (
+    res: {
+      area: number;
+      contour: Point[];
+      contourCount: number;
+      markerFound: boolean;
+    }
+  ) => void;
+  imageUri: string;
+  base64: string;
+  width: number;
+  height: number;
+  attempts: number;
+  isLive: boolean;
+  type: "area" | "contour";
+};
 
 export class FallbackAnalyzer implements LeafAnalyzer {
   analyzeArea(imageUri: string | null, isLivePreview: boolean) {
@@ -23,18 +41,16 @@ export class FallbackAnalyzer implements LeafAnalyzer {
 
 export class OpenCvAnalyzer implements LeafAnalyzer {
   private ready = false;
-  private queue: (
-    (res: {
-      area: number;
-      contour: Point[];
-      contourCount: number;
-      markerFound: boolean;
-    }) => void
-  )[] = [];
+  private queue: QueueItem[] = [];
+  private fallback = new FallbackAnalyzer();
   constructor(private webRef: React.RefObject<OpenCVHandle>) {}
 
   setReady(value: boolean) {
     this.ready = value;
+    if (this.ready && this.queue.length > 0) {
+      const item = this.queue[0];
+      this.webRef.current?.sendImage(item.base64, item.width, item.height, 30);
+    }
   }
 
   handleResult(res: {
@@ -43,12 +59,49 @@ export class OpenCvAnalyzer implements LeafAnalyzer {
     contourCount: number;
     markerFound: boolean;
   }) {
-    const cb = this.queue.shift();
-    cb?.(res);
+    const item = this.queue.shift();
+    item?.resolve(res);
+    if (this.queue.length > 0) {
+      const next = this.queue[0];
+      this.webRef.current?.sendImage(next.base64, next.width, next.height, 30);
+    }
+  }
+
+  async handleError(_message: string) {
+    const item = this.queue[0];
+    if (!item) return;
+    item.attempts += 1;
+    if (item.attempts < 3) {
+      this.webRef.current?.sendImage(item.base64, item.width, item.height, 30);
+      return;
+    }
+    this.queue.shift();
+    Alert.alert(
+      "Ошибка OpenCV",
+      "Произошла ошибка анализа. Используется резервный алгоритм"
+    );
+    if (item.type === "area") {
+      const area = await this.fallback.analyzeArea(item.imageUri, item.isLive);
+      item.resolve({ area, contour: [], contourCount: 0, markerFound: false });
+    } else {
+      const contour = await this.fallback.findContour(item.imageUri);
+      item.resolve({
+        area: 0,
+        contour,
+        contourCount: contour.length,
+        markerFound: false,
+      });
+    }
+    if (this.queue.length > 0) {
+      const next = this.queue[0];
+      this.webRef.current?.sendImage(next.base64, next.width, next.height, 30);
+    }
   }
 
   private async process(
-    imageUri: string
+    imageUri: string,
+    isLive: boolean,
+    type: "area" | "contour"
   ): Promise<{ area: number; contour: Point[]; contourCount: number; markerFound: boolean }> {
     const base64 = await FileSystem.readAsStringAsync(imageUri, { encoding: FileSystem.EncodingType.Base64 });
     const { width, height } = await new Promise<{ width: number; height: number }>((resolve, reject) => {
@@ -56,8 +109,18 @@ export class OpenCvAnalyzer implements LeafAnalyzer {
     });
 
     return new Promise((resolve) => {
-      this.queue.push(resolve);
-      if (this.ready) {
+      const item: QueueItem = {
+        resolve,
+        imageUri,
+        base64,
+        width,
+        height,
+        attempts: 0,
+        isLive,
+        type,
+      };
+      this.queue.push(item);
+      if (this.ready && this.queue.length === 1) {
         this.webRef.current?.sendImage(base64, width, height, 30);
       }
     });
@@ -65,13 +128,13 @@ export class OpenCvAnalyzer implements LeafAnalyzer {
 
   async analyzeArea(imageUri: string | null, _isLivePreview: boolean) {
     if (!imageUri) return analyzeLeafArea(null, _isLivePreview);
-    const res = await this.process(imageUri);
+    const res = await this.process(imageUri, _isLivePreview, "area");
     return res.area;
   }
 
   async findContour(imageUri: string | null) {
     if (!imageUri) return findLeafContour(null);
-    const res = await this.process(imageUri);
+    const res = await this.process(imageUri, false, "contour");
     return res.contour;
   }
 }
@@ -106,6 +169,12 @@ export const LeafAnalyzerProvider = ({ children }: { children: React.ReactNode }
     }
   };
 
+  const onError = (message: string) => {
+    if (analyzer instanceof OpenCvAnalyzer) {
+      analyzer.handleError(message);
+    }
+  };
+
   return (
     <LeafAnalyzerContext.Provider value={analyzer}>
       {children}
@@ -114,6 +183,7 @@ export const LeafAnalyzerProvider = ({ children }: { children: React.ReactNode }
           ref={webRef}
           onResult={onResult}
           onReady={onReady}
+          onError={onError}
           debug={__DEV__}
         />
       )}

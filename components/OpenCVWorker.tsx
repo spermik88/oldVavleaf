@@ -17,6 +17,7 @@ type Props = {
     }
   ) => void;
   onReady?: () => void;
+  onError?: (message: string) => void;
   debug?: boolean;
 };
 
@@ -82,6 +83,7 @@ const OpenCVWorker = forwardRef((props: Props, ref) => {
 
     if (parsed?.type === 'error') {
       console.error(`OpenCV error: ${parsed.message}`);
+      props.onError?.(parsed.message);
       return;
     }
 
