@@ -67,6 +67,11 @@ const OpenCVWorker = forwardRef((props: Props, ref) => {
       return;
     }
 
+    if (parsed?.type === 'error') {
+      console.error(`OpenCV error: ${parsed.message}`);
+      return;
+    }
+
     if (parsed === null) {
       console.error('Ошибка WebView: неверный формат сообщения');
     }
