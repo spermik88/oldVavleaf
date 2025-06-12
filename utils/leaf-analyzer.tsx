@@ -234,7 +234,7 @@ export const useLeafAnalyzer = () => useContext(LeafAnalyzerContext);
 const styles = StyleSheet.create({
   initOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 100,
@@ -242,5 +242,7 @@ const styles = StyleSheet.create({
   initText: {
     marginTop: 8,
     color: Colors.text.primary,
+    fontSize: 16,
+    fontWeight: '500',
   },
 });
