@@ -56,6 +56,12 @@ npx expo export -p web
 "start-web-dev": "DEBUG=expo* expo start --web --tunnel",
 "android": "expo run:android",
 "ios": "expo run:ios",
-"test": "echo \"No tests implemented\"",
+"test": "jest",
 "tsc": "tsc --noEmit"
+```
+
+## Запуск тестов
+После установки зависимостей выполните:
+```bash
+npm test
 ```
