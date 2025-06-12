@@ -10,6 +10,7 @@ export type OpenCVHandle = {
 type Props = {
   onResult?: (result: { area: number; contour: { x: number; y: number }[] }) => void;
   onReady?: () => void;
+  debug?: boolean;
 };
 
 const OpenCVWorker = forwardRef((props: Props, ref) => {
@@ -83,6 +84,7 @@ const OpenCVWorker = forwardRef((props: Props, ref) => {
         ref={webViewRef}
         originWhitelist={['*']}
         source={require('../assets/opencv.html')}
+        injectedJavaScript={`window.debug = ${props.debug ? 'true' : 'false'}; true;`}
         onMessage={handleMessage}
         javaScriptEnabled={true}
       />
