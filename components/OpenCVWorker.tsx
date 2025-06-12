@@ -1,6 +1,7 @@
-import React, { useRef, forwardRef, useImperativeHandle } from 'react';
+import React, { useRef, forwardRef, useImperativeHandle, useState, useEffect } from 'react';
 import { WebView, WebViewMessageEvent } from "react-native-webview";
-import { View } from 'react-native';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import Colors from "@/constants/colors";
 import { Asset } from 'expo-asset';
 
 export type OpenCVHandle = {
@@ -26,6 +27,7 @@ type Props = {
 const OpenCVWorker = forwardRef((props: Props, ref) => {
   const webViewRef = useRef<WebView>(null);
   const readyRef = useRef(false);
+  const [readyState, setReadyState] = useState(false);
   const readyResolveRef = useRef<() => void>();
   const readyPromiseRef = useRef<Promise<void>>(
     new Promise((resolve) => {
@@ -35,6 +37,14 @@ const OpenCVWorker = forwardRef((props: Props, ref) => {
   const queueRef = useRef<
     { base64: string; width: number; height: number; pxPerCell: number }[]
   >([]);
+
+  useEffect(() => {
+    if (readyRef.current) {
+      setReadyState(true);
+    } else {
+      readyPromiseRef.current.then(() => setReadyState(true));
+    }
+  }, []);
 
   const htmlUri = Asset.fromModule(require('../assets/opencv.html')).uri;
 
@@ -77,6 +87,7 @@ const OpenCVWorker = forwardRef((props: Props, ref) => {
     if (parsed?.type === 'ready' || message === 'ready') {
       readyRef.current = true;
       readyResolveRef.current?.();
+      setReadyState(true);
       queueRef.current.forEach((item) =>
         injectProcessImage(item.base64, item.width, item.height, item.pxPerCell)
       );
@@ -108,13 +119,19 @@ const OpenCVWorker = forwardRef((props: Props, ref) => {
   };
 
   return (
-    <View style={{ width: 1, height: 1, opacity: 0 }}>
+    <View style={styles.wrapper}>
+      {!readyState && (
+        <View style={styles.overlay} pointerEvents="none">
+          <ActivityIndicator size="large" color={Colors.text.primary} />
+        </View>
+      )}
       <WebView
         ref={webViewRef}
         originWhitelist={['*']}
         source={{ uri: `${htmlUri}${props.debug ? '?debug=true' : ''}` }}
         onMessage={handleMessage}
         javaScriptEnabled={true}
+        style={styles.webview}
       />
     </View>
   );
@@ -123,3 +140,23 @@ const OpenCVWorker = forwardRef((props: Props, ref) => {
 export default OpenCVWorker as React.ForwardRefExoticComponent<
   Props & React.RefAttributes<OpenCVHandle>
 >;
+
+const styles = StyleSheet.create({
+  wrapper: {
+    width: 1,
+    height: 1,
+    opacity: 0,
+  },
+  webview: {
+    width: 1,
+    height: 1,
+    opacity: 0,
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    zIndex: 10,
+  },
+});
