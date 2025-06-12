@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { Platform } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { ErrorBoundary } from "./error-boundary";
+import { LeafAnalyzerProvider } from "@/utils/leaf-analyzer";
 
 export const unstable_settings = {
   initialRouteName: "(tabs)",
@@ -40,7 +41,9 @@ export default function RootLayout() {
   return (
     <ErrorBoundary>
       <StatusBar style="light" />
-      <RootLayoutNav />
+      <LeafAnalyzerProvider>
+        <RootLayoutNav />
+      </LeafAnalyzerProvider>
     </ErrorBoundary>
   );
 }

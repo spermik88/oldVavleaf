@@ -1,7 +1,6 @@
 // @ts-nocheck
-import OpenCVWorker, { OpenCVHandle } from "../../components/OpenCVWorker";
-import Svg, { Polygon } from "react-native-svg";
 import LeafContour from "@/components/LeafContour";
+import { useLeafAnalyzer } from "@/utils/leaf-analyzer";
 
 import React, { useState, useRef, useEffect } from "react";
 import { 
@@ -27,14 +26,13 @@ import Slider from "@react-native-community/slider";
 import Colors from "@/constants/colors";
 import { useLeafStore } from "@/store/leaf-store";
 import { useSettingsStore } from "@/store/settings-store";
-import { analyzeLeafArea, findLeafContour } from "@/utils/camera-utils";
 import { saveImageWithExif } from "@/utils/image-utils";
 import { useVolumeButtonListener } from "@/hooks/use-volume-button";
 
 const { width, height } = Dimensions.get("window");
 
 export default function CameraScreen() {
-const webviewRef = useRef<OpenCVHandle>(null);
+  const analyzer = useLeafAnalyzer();
   const [permission, requestPermission] = useCameraPermissions();
   const [locationPermission, requestLocationPermission] = Location.useForegroundPermissions();
   const [facing, setFacing] = useState<CameraType>("back");
@@ -50,16 +48,17 @@ const webviewRef = useRef<OpenCVHandle>(null);
   const [showCaptureAnimation, setShowCaptureAnimation] = useState(false);
   const [slideToGalleryAnimation] = useState(new Animated.Value(0));
   const [cameraReady, setCameraReady] = useState(false);
-  const [openCvReady, setOpenCvReady] = useState(false);
   const cameraRef = useRef<CameraViewRef>(null);
-  const [pendingPhoto, setPendingPhoto] = useState<null | { photo: any; dateStr: string }>(null);
   const { capturedImages, addCapturedImage } = useLeafStore();
   const { highResolutionCapture, saveGpsData, manualFocusOnly } = useSettingsStore();
 
 
-  const handleOpenCVResult = async (area: number, contour?: any) => {
-    if (!pendingPhoto) return;
-    const { photo, dateStr } = pendingPhoto;
+  const handleOpenCVResult = async (
+    photo: any,
+    dateStr: string,
+    area: number,
+    contour?: any
+  ) => {
 
     const filename = `${dateStr}_${area.toFixed(2)}.jpg`;
     const tempDir = `${FileSystem.cacheDirectory}temp/`;
@@ -95,18 +94,7 @@ const webviewRef = useRef<OpenCVHandle>(null);
       [{ text: "OK" }]
     );
 
-    setPendingPhoto(null);
     setIsCapturing(false);
-  };
-
-  const onWebViewMessage = ({ area, contour }: { area: number; contour?: any }) => {
-    try {
-      if (typeof area === "number") {
-        handleOpenCVResult(area, contour);
-      }
-    } catch (err) {
-      console.error("Ошибка обработки данных OpenCV:", err);
-    }
   };
 
   // Request permissions
@@ -158,7 +146,7 @@ useEffect(() => {
   let isMounted = true;
 
 const captureAndSend = async () => {
-  if (!cameraReady || isCapturing || !isMounted || !openCvReady) return;
+  if (!cameraReady || isCapturing || !isMounted) return;
   try {
     setProcessingFrame(true);
 
@@ -170,9 +158,10 @@ const captureAndSend = async () => {
 
     if (!photo?.base64 || !photo?.width || !photo?.height) return;
 
-    if (openCvReady) {
-      webviewRef.current?.sendImage(photo.base64, photo.width, photo.height, 30);
-    }
+    const area = await analyzer.analyzeArea(photo.uri, true);
+    const contour = await analyzer.findContour(photo.uri);
+    setLeafArea(area);
+    setContourPoints(contour);
   } catch (error) {
     console.error("Ошибка при анализе кадра:", error);
   } finally {
@@ -186,7 +175,7 @@ const captureAndSend = async () => {
   isMounted = false;
   clearInterval(timer);
 };
-}, [cameraReady, isCapturing, openCvReady]);
+}, [cameraReady, isCapturing, analyzer]);
 
 
   // Convert focus distance (0-1) to cm.mm format
@@ -201,9 +190,10 @@ const captureAndSend = async () => {
     setIsCalculating(true);
     
     try {
-      // Симулируем анализ без обращения к камере для предотвращения ошибок
-      const newArea = await analyzeLeafArea(null, false);
-      const newContour = await findLeafContour(null);
+      const photo = await cameraRef.current?.takePictureAsync();
+      if (!photo?.uri) throw new Error('No photo');
+      const newArea = await analyzer.analyzeArea(photo.uri, false);
+      const newContour = await analyzer.findContour(photo.uri);
       
       setLeafArea(newArea);
       setContourPoints(newContour);
@@ -251,7 +241,7 @@ const captureAndSend = async () => {
 
 const capturePhoto = async () => {
   console.log("Capture photo called");
-  if (!cameraReady || isCapturing || !openCvReady) {
+  if (!cameraReady || isCapturing) {
     console.log("Camera not ready or already capturing");
     return;
   }
@@ -270,19 +260,14 @@ const capturePhoto = async () => {
       return;
     }
 
-    const photo = await cameraRef.current.takePictureAsync({ base64: true });
-    if (!photo?.base64 || !photo?.width || !photo?.height) {
+    const photo = await cameraRef.current.takePictureAsync();
+    if (!photo?.uri) {
       setIsCapturing(false);
       return;
     }
-
-    // --- Новый механизм ---
-    setPendingPhoto({ photo, dateStr });
-    if (openCvReady) {
-      webviewRef.current?.sendImage(photo.base64, photo.width, photo.height, 30);
-    }
-
-    // Всё, дальнейшие действия только после прихода результата!
+    const area = await analyzer.analyzeArea(photo.uri, false);
+    const contour = await analyzer.findContour(photo.uri);
+    await handleOpenCVResult(photo, dateStr, area, contour);
   } catch (error) {
     setIsCapturing(false);
     Alert.alert("Ошибка", "Не удалось сделать фото");
@@ -505,7 +490,7 @@ const capturePhoto = async () => {
               console.log("Capture button pressed");
               capturePhoto();
             }}
-            disabled={isCapturing || !cameraReady || !openCvReady}
+            disabled={isCapturing || !cameraReady}
             hitSlop={20}
           >
             <View style={[
@@ -525,7 +510,6 @@ const capturePhoto = async () => {
             <ImageIcon size={28} color={Colors.text.primary} />
           </Pressable>
         </View>
-<OpenCVWorker ref={webviewRef} onResult={onWebViewMessage} onReady={() => setOpenCvReady(true)} />
       </CameraView>
     </View>
   );
