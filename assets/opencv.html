@@ -50,14 +50,18 @@ for (let i = 0; i < contours.size(); ++i) {
   ctx.closePath();
 }
 ctx.stroke();
-            let maxArea = 0, cntIndex = 0;
+            let points = [];
+            let maxArea = 0;
             for (let i = 0; i < contours.size(); ++i) {
-let points = [];
-for (let j = 0; j < cnt.data32S.length; j += 2) {
-  points.push({ x: cnt.data32S[j], y: cnt.data32S[j + 1] });
-}
-              let area = cv.contourArea(contours.get(i));
-              if (area > maxArea) { maxArea = area; cntIndex = i; }
+              const cnt = contours.get(i);
+              const area = cv.contourArea(cnt);
+              if (area > maxArea) {
+                maxArea = area;
+                points = [];
+                for (let j = 0; j < cnt.data32S.length; j += 2) {
+                  points.push({ x: cnt.data32S[j], y: cnt.data32S[j + 1] });
+                }
+              }
             }
 
             let mm2 = maxArea * (25.0 / (pxPerCell * pxPerCell));
@@ -71,10 +75,6 @@ window.ReactNativeWebView.postMessage(JSON.stringify({
   area: result,
   contour: points
 }));
-            window.ReactNativeWebView.postMessage(JSON.stringify({
-              type: 'result',
-              area: result
-            }));
           };
           img.src = 'data:image/png;base64,' + imageData;
         } catch (e) {
