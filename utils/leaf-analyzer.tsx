@@ -9,7 +9,7 @@ import * as FileSystem from "expo-file-system";
 import { Image, Alert, ActivityIndicator, View, Text, StyleSheet } from "react-native";
 import OpenCVWorker, { OpenCVHandle } from "@/components/OpenCVWorker";
 import { analyzeLeafArea, findLeafContour } from "@/utils/camera-utils";
-import React, { createContext, useContext, useMemo, useRef, useState } from "react";
+import React, { createContext, useContext, useMemo, useRef, useState, useEffect } from "react";
 import Colors from "@/constants/colors";
 import { Platform } from "react-native";
 
@@ -107,6 +107,10 @@ export class OpenCvAnalyzer implements LeafAnalyzer {
     }
   }
 
+  clearQueue() {
+    this.queue = [];
+  }
+
   private async process(
     imageUri: string,
     isLive: boolean,
@@ -158,6 +162,14 @@ export const LeafAnalyzerProvider = ({ children }: { children: React.ReactNode }
     }
     return new OpenCvAnalyzer(webRef);
   }, []);
+
+  useEffect(() => {
+    return () => {
+      if (analyzer instanceof OpenCvAnalyzer) {
+        analyzer.clearQueue();
+      }
+    };
+  }, [analyzer]);
 
   const [isOpenCvReady, setIsOpenCvReady] = useState(Platform.OS === "web");
 
