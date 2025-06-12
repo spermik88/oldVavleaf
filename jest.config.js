@@ -1,5 +1,4 @@
 module.exports = {
-  preset: 'ts-jest',
-  testEnvironment: 'node',
+  preset: 'jest-expo',
   moduleFileExtensions: ['ts', 'tsx', 'js']
 };
