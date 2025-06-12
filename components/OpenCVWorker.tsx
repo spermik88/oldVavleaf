@@ -8,7 +8,14 @@ export type OpenCVHandle = {
 };
 
 type Props = {
-  onResult?: (result: { area: number; contour: { x: number; y: number }[] }) => void;
+  onResult?: (
+    result: {
+      area: number;
+      contour: { x: number; y: number }[];
+      contourCount: number;
+      markerFound: boolean;
+    }
+  ) => void;
   onReady?: () => void;
   debug?: boolean;
 };
@@ -64,7 +71,12 @@ const OpenCVWorker = forwardRef((props: Props, ref) => {
     }
 
     if (parsed?.type === 'result') {
-      props.onResult?.({ area: parsed.area, contour: parsed.contour });
+      props.onResult?.({
+        area: parsed.area,
+        contour: parsed.contour,
+        contourCount: parsed.contourCount,
+        markerFound: parsed.markerFound,
+      });
       return;
     }
 

@@ -23,19 +23,33 @@ export class FallbackAnalyzer implements LeafAnalyzer {
 
 export class OpenCvAnalyzer implements LeafAnalyzer {
   private ready = false;
-  private queue: ((res: { area: number; contour: Point[] }) => void)[] = [];
+  private queue: (
+    (res: {
+      area: number;
+      contour: Point[];
+      contourCount: number;
+      markerFound: boolean;
+    }) => void
+  )[] = [];
   constructor(private webRef: React.RefObject<OpenCVHandle>) {}
 
   setReady(value: boolean) {
     this.ready = value;
   }
 
-  handleResult(res: { area: number; contour: Point[] }) {
+  handleResult(res: {
+    area: number;
+    contour: Point[];
+    contourCount: number;
+    markerFound: boolean;
+  }) {
     const cb = this.queue.shift();
     cb?.(res);
   }
 
-  private async process(imageUri: string): Promise<{ area: number; contour: Point[] }> {
+  private async process(
+    imageUri: string
+  ): Promise<{ area: number; contour: Point[]; contourCount: number; markerFound: boolean }> {
     const base64 = await FileSystem.readAsStringAsync(imageUri, { encoding: FileSystem.EncodingType.Base64 });
     const { width, height } = await new Promise<{ width: number; height: number }>((resolve, reject) => {
       Image.getSize(imageUri, (w, h) => resolve({ width: w, height: h }), reject);
@@ -73,7 +87,14 @@ export const LeafAnalyzerProvider = ({ children }: { children: React.ReactNode }
     return new OpenCvAnalyzer(webRef);
   }, []);
 
-  const onResult = (res: { area: number; contour: Point[] }) => {
+  const onResult = (
+    res: {
+      area: number;
+      contour: Point[];
+      contourCount: number;
+      markerFound: boolean;
+    }
+  ) => {
     if (analyzer instanceof OpenCvAnalyzer) {
       analyzer.handleResult(res);
     }

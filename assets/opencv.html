@@ -54,6 +54,37 @@
             let contours = new cv.MatVector();
             let hierarchy = new cv.Mat();
             cv.findContours(edges, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+            let contourCount = contours.size();
+            let markerFound = false;
+
+            for (let i = 0; i < contours.size(); ++i) {
+              const cnt = contours.get(i);
+              if (cnt.data32S.length >= 8) {
+                let minX = Number.MAX_VALUE, minY = Number.MAX_VALUE;
+                let maxX = 0, maxY = 0;
+                for (let j = 0; j < cnt.data32S.length; j += 2) {
+                  const x = cnt.data32S[j];
+                  const y = cnt.data32S[j + 1];
+                  if (x < minX) minX = x;
+                  if (y < minY) minY = y;
+                  if (x > maxX) maxX = x;
+                  if (y > maxY) maxY = y;
+                }
+                const widthR = maxX - minX;
+                const heightR = maxY - minY;
+                const aspect = widthR / heightR;
+                const areaR = widthR * heightR;
+                if (
+                  aspect > 0.8 &&
+                  aspect < 1.2 &&
+                  areaR > pxPerCell * pxPerCell * 0.5 &&
+                  areaR < pxPerCell * pxPerCell * 2
+                ) {
+                  markerFound = true;
+                  break;
+                }
+              }
+            }
 
             if (debug) {
               ctx.lineWidth = 2;
@@ -95,7 +126,9 @@
 window.ReactNativeWebView.postMessage(JSON.stringify({
   type: 'result',
   area: result,
-  contour: points
+  contour: points,
+  contourCount: contourCount,
+  markerFound: markerFound
 }));
           };
           img.onerror = () => {
