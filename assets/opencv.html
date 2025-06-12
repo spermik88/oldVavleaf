@@ -14,7 +14,9 @@
     <script>
       function onOpenCvReady() {
         cv['onRuntimeInitialized'] = () => {
-          postMessage('ready');
+          window.ReactNativeWebView.postMessage(
+            JSON.stringify({ type: 'ready' })
+          );
         };
       }
 
