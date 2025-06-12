@@ -80,6 +80,14 @@ window.ReactNativeWebView.postMessage(JSON.stringify({
   contour: points
 }));
           };
+          img.onerror = () => {
+            window.ReactNativeWebView.postMessage(
+              JSON.stringify({
+                type: 'error',
+                message: 'Image load failed'
+              })
+            );
+          };
           img.src = 'data:image/png;base64,' + imageData;
         } catch (e) {
           window.ReactNativeWebView.postMessage(JSON.stringify({
