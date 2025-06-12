@@ -21,6 +21,13 @@
       }
 
       window.processImage = function(imageData, width, height, pxPerCell) {
+        if (typeof width !== 'number' || typeof height !== 'number' || typeof pxPerCell !== 'number' ||
+            width <= 0 || height <= 0 || pxPerCell <= 0) {
+          window.ReactNativeWebView.postMessage(
+            JSON.stringify({ type: 'error', message: 'Invalid parameters' })
+          );
+          return;
+        }
         try {
           let img = new Image();
           img.onload = () => {
