@@ -13,6 +13,8 @@ import React, { createContext, useContext, useMemo, useRef, useState, useEffect 
 import Colors from "@/constants/colors";
 import { Platform } from "react-native";
 
+const MAX_ATTEMPTS = 5;
+
 type QueueItem = {
   resolve: (
     res: {
@@ -81,18 +83,19 @@ export class OpenCvAnalyzer implements LeafAnalyzer {
     }
   }
 
-  async handleError(_message: string) {
+  async handleError(message: string) {
     const item = this.queue[0];
     if (!item) return;
+    console.error(`OpenCV error: ${message}`);
     item.attempts += 1;
-    if (item.attempts < 3) {
+    if (item.attempts < MAX_ATTEMPTS) {
       await this.sendImage(item.base64, item.width, item.height);
       return;
     }
     this.queue.shift();
     Alert.alert(
       "Ошибка OpenCV",
-      "Произошла ошибка анализа. Используется резервный алгоритм"
+      "Не удалось обработать кадр. Используется резервный алгоритм"
     );
     if (item.type === "area") {
       const area = await this.fallback.analyzeArea(item.imageUri, item.isLive);

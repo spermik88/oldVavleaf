@@ -28,12 +28,7 @@ const OpenCVWorker = forwardRef((props: Props, ref) => {
   const webViewRef = useRef<WebView>(null);
   const readyRef = useRef(false);
   const [readyState, setReadyState] = useState(false);
-  const readyResolveRef = useRef<() => void>();
-  const readyPromiseRef = useRef<Promise<void>>(
-    new Promise((resolve) => {
-      readyResolveRef.current = resolve;
-    })
-  );
+  const readyResolversRef = useRef<(() => void)[]>([]);
   const queueRef = useRef<
     { base64: string; width: number; height: number; pxPerCell: number }[]
   >([]);
@@ -41,8 +36,6 @@ const OpenCVWorker = forwardRef((props: Props, ref) => {
   useEffect(() => {
     if (readyRef.current) {
       setReadyState(true);
-    } else {
-      readyPromiseRef.current.then(() => setReadyState(true));
     }
   }, []);
 
@@ -70,7 +63,12 @@ const OpenCVWorker = forwardRef((props: Props, ref) => {
       }
     },
     waitUntilReady() {
-      return readyRef.current ? Promise.resolve() : readyPromiseRef.current;
+      if (readyRef.current) {
+        return Promise.resolve();
+      }
+      return new Promise<void>((resolve) => {
+        readyResolversRef.current.push(resolve);
+      });
     },
   }));
 
@@ -86,8 +84,9 @@ const OpenCVWorker = forwardRef((props: Props, ref) => {
 
     if (parsed?.type === 'ready' || message === 'ready') {
       readyRef.current = true;
-      readyResolveRef.current?.();
       setReadyState(true);
+      readyResolversRef.current.forEach((r) => r());
+      readyResolversRef.current = [];
       queueRef.current.forEach((item) =>
         injectProcessImage(item.base64, item.width, item.height, item.pxPerCell)
       );
