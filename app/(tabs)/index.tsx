@@ -50,6 +50,7 @@ const webviewRef = useRef<OpenCVHandle>(null);
   const [showCaptureAnimation, setShowCaptureAnimation] = useState(false);
   const [slideToGalleryAnimation] = useState(new Animated.Value(0));
   const [cameraReady, setCameraReady] = useState(false);
+  const [openCvReady, setOpenCvReady] = useState(false);
   const cameraRef = useRef<CameraViewRef>(null);
   const [pendingPhoto, setPendingPhoto] = useState<null | { photo: any; dateStr: string }>(null);
   const { capturedImages, addCapturedImage } = useLeafStore();
@@ -157,7 +158,7 @@ useEffect(() => {
   let isMounted = true;
 
 const captureAndSend = async () => {
-  if (!cameraReady || isCapturing || !isMounted) return;
+  if (!cameraReady || isCapturing || !isMounted || !openCvReady) return;
   try {
     setProcessingFrame(true);
 
@@ -169,7 +170,9 @@ const captureAndSend = async () => {
 
     if (!photo?.base64 || !photo?.width || !photo?.height) return;
 
-    webviewRef.current?.sendImage(photo.base64, photo.width, photo.height, 30);
+    if (openCvReady) {
+      webviewRef.current?.sendImage(photo.base64, photo.width, photo.height, 30);
+    }
   } catch (error) {
     console.error("Ошибка при анализе кадра:", error);
   } finally {
@@ -183,7 +186,7 @@ const captureAndSend = async () => {
   isMounted = false;
   clearInterval(timer);
 };
-}, [cameraReady, isCapturing]);
+}, [cameraReady, isCapturing, openCvReady]);
 
 
   // Convert focus distance (0-1) to cm.mm format
@@ -248,7 +251,7 @@ const captureAndSend = async () => {
 
 const capturePhoto = async () => {
   console.log("Capture photo called");
-  if (!cameraReady || isCapturing) {
+  if (!cameraReady || isCapturing || !openCvReady) {
     console.log("Camera not ready or already capturing");
     return;
   }
@@ -275,7 +278,9 @@ const capturePhoto = async () => {
 
     // --- Новый механизм ---
     setPendingPhoto({ photo, dateStr });
-    webviewRef.current?.sendImage(photo.base64, photo.width, photo.height, 30);
+    if (openCvReady) {
+      webviewRef.current?.sendImage(photo.base64, photo.width, photo.height, 30);
+    }
 
     // Всё, дальнейшие действия только после прихода результата!
   } catch (error) {
@@ -500,7 +505,7 @@ const capturePhoto = async () => {
               console.log("Capture button pressed");
               capturePhoto();
             }}
-            disabled={isCapturing || !cameraReady}
+            disabled={isCapturing || !cameraReady || !openCvReady}
             hitSlop={20}
           >
             <View style={[
@@ -520,7 +525,7 @@ const capturePhoto = async () => {
             <ImageIcon size={28} color={Colors.text.primary} />
           </Pressable>
         </View>
-<OpenCVWorker ref={webviewRef} onResult={onWebViewMessage} />
+<OpenCVWorker ref={webviewRef} onResult={onWebViewMessage} onReady={() => setOpenCvReady(true)} />
       </CameraView>
     </View>
   );
