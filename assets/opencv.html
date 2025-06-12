@@ -13,7 +13,9 @@
     <script async src="opencv.js" onload="onOpenCvReady();"></script>
     <script>
       function onOpenCvReady() {
-        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'ready' }));
+        cv['onRuntimeInitialized'] = () => {
+          postMessage('ready');
+        };
       }
 
       window.processImage = function(imageData, width, height, pxPerCell) {

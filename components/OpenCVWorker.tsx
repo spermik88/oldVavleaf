@@ -13,25 +13,53 @@ type Props = {
 
 const OpenCVWorker = forwardRef((props: Props, ref) => {
   const webViewRef = useRef<WebView>(null);
+  const readyRef = useRef(false);
+  const queueRef = useRef<
+    { base64: string; width: number; height: number; pxPerCell: number }[]
+  >([]);
 
-  useImperativeHandle(ref, () => ({
-    sendImage(base64, width, height, pxPerCell) {
-      const js = `
+  const injectProcessImage = (
+    base64: string,
+    width: number,
+    height: number,
+    pxPerCell: number
+  ) => {
+    const js = `
         window.processImage(${JSON.stringify(base64)}, ${width}, ${height}, ${pxPerCell});
         true;
       `;
-      webViewRef.current?.injectJavaScript(js);
+    webViewRef.current?.injectJavaScript(js);
+  };
+
+  useImperativeHandle(ref, () => ({
+    sendImage(base64, width, height, pxPerCell) {
+      if (readyRef.current) {
+        injectProcessImage(base64, width, height, pxPerCell);
+      } else {
+        queueRef.current.push({ base64, width, height, pxPerCell });
+      }
     }
   }));
 
   const handleMessage = (event: any) => {
+    const message = event.nativeEvent.data;
+
+    if (message === 'ready') {
+      readyRef.current = true;
+      queueRef.current.forEach((item) =>
+        injectProcessImage(item.base64, item.width, item.height, item.pxPerCell)
+      );
+      queueRef.current = [];
+      return;
+    }
+
     try {
-      const data = JSON.parse(event.nativeEvent.data);
+      const data = JSON.parse(message);
       if (data.type === 'result') {
         props.onResult?.({ area: data.area, contour: data.contour });
       }
     } catch (error) {
-      console.error("Ошибка WebView:", error);
+      console.error('Ошибка WebView:', error);
     }
   };
 
