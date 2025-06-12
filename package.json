@@ -7,7 +7,9 @@
     "start-web": "expo start --web --tunnel",
     "start-web-dev": "DEBUG=expo* expo start --web --tunnel",
     "android": "expo run:android",
-    "ios": "expo run:ios"
+    "ios": "expo run:ios",
+    "test": "echo \"No tests implemented\"",
+    "tsc": "tsc --noEmit"
   },
   "dependencies": {
     "@babel/plugin-proposal-export-namespace-from": "^7.18.9",
@@ -57,7 +59,8 @@
     "@expo/ngrok": "^4.1.0",
     "@types/react": "~18.3.12",
     "@types/react-native": "^0.72.8",
-    "typescript": "~5.8.2"
+    "typescript": "~5.8.2",
+    "@types/jest": "^29.5.11"
   },
   "private": true
 }
