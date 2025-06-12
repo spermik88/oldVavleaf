@@ -150,7 +150,8 @@ const captureAndSend = async () => {
   try {
     setProcessingFrame(true);
 
-    const photo = await cameraRef.current.takePictureAsync({
+    if (!cameraRef.current) return;
+    const photo = await (cameraRef.current as any).takePictureAsync({
       quality: 0.5,
       base64: true,
       skipMetadata: true,
@@ -190,7 +191,7 @@ const captureAndSend = async () => {
     setIsCalculating(true);
     
     try {
-      const photo = await cameraRef.current?.takePictureAsync();
+      const photo = await (cameraRef.current as any)?.takePictureAsync();
       if (!photo?.uri) throw new Error('No photo');
       const newArea = await analyzer.analyzeArea(photo.uri, false);
       const newContour = await analyzer.findContour(photo.uri);
@@ -260,7 +261,7 @@ const capturePhoto = async () => {
       return;
     }
 
-    const photo = await cameraRef.current.takePictureAsync();
+    const photo = await (cameraRef.current as any).takePictureAsync();
     if (!photo?.uri) {
       setIsCapturing(false);
       return;
@@ -431,7 +432,7 @@ const capturePhoto = async () => {
             <RefreshCw 
               size={16} 
               color={Colors.text.primary} 
-              style={isCalculating ? styles.rotating : undefined} 
+              style={isCalculating ? (styles.rotating as any) : undefined} 
             />
           </Pressable>
         </View>

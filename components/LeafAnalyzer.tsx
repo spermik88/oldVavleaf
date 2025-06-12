@@ -1,16 +1,15 @@
-// @ts-nocheck
 // components/LeafAnalyzer.tsx
 import React, { useRef, useState } from 'react';
 import { View, Button, Text } from 'react-native';
-import { WebView } from 'react-native-webview';
+import { WebView, WebViewMessageEvent } from "react-native-webview";
 
 export default function LeafAnalyzer() {
-  const webViewRef = useRef(null);
-  const [area, setArea] = useState(null);
+  const webViewRef = useRef<WebView>(null);
+  const [area, setArea] = useState<number | null>(null);
   const [ready, setReady] = useState(false);
   const debug = __DEV__;
 
-  const handleMessage = (event) => {
+  const handleMessage = (event: WebViewMessageEvent) => {
     try {
       const data = JSON.parse(event.nativeEvent.data);
       if (data.type === 'ready') {
