@@ -56,12 +56,20 @@ export class OpenCvAnalyzer implements LeafAnalyzer {
 
   handleResult(res: {
     area: number;
+    pxPerCell: number;
     contour: Point[];
     contourCount: number;
     markerFound: boolean;
   }) {
     const item = this.queue.shift();
-    item?.resolve(res);
+    const cm2 =
+      (res.area * (25.0 / (res.pxPerCell * res.pxPerCell))) / 100.0;
+    item?.resolve({
+      area: cm2,
+      contour: res.contour,
+      contourCount: res.contourCount,
+      markerFound: res.markerFound,
+    });
     if (this.queue.length > 0) {
       const next = this.queue[0];
       this.webRef.current?.sendImage(next.base64, next.width, next.height, 30);
@@ -156,6 +164,7 @@ export const LeafAnalyzerProvider = ({ children }: { children: React.ReactNode }
   const onResult = (
     res: {
       area: number;
+      pxPerCell: number;
       contour: Point[];
       contourCount: number;
       markerFound: boolean;
