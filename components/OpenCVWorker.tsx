@@ -6,6 +6,7 @@ import { Asset } from 'expo-asset';
 
 export type OpenCVHandle = {
   sendImage: (base64: string, width: number, height: number, pxPerCell: number) => void;
+  waitUntilReady: () => Promise<void>;
 };
 
 type Props = {
@@ -26,6 +27,12 @@ type Props = {
 const OpenCVWorker = forwardRef((props: Props, ref) => {
   const webViewRef = useRef<WebView>(null);
   const readyRef = useRef(false);
+  const readyResolveRef = useRef<() => void>();
+  const readyPromiseRef = useRef<Promise<void>>(
+    new Promise((resolve) => {
+      readyResolveRef.current = resolve;
+    })
+  );
   const queueRef = useRef<
     { base64: string; width: number; height: number; pxPerCell: number }[]
   >([]);
@@ -52,7 +59,10 @@ const OpenCVWorker = forwardRef((props: Props, ref) => {
       } else {
         queueRef.current.push({ base64, width, height, pxPerCell });
       }
-    }
+    },
+    waitUntilReady() {
+      return readyRef.current ? Promise.resolve() : readyPromiseRef.current;
+    },
   }));
 
   const handleMessage = (event: any) => {
@@ -67,6 +77,7 @@ const OpenCVWorker = forwardRef((props: Props, ref) => {
 
     if (parsed?.type === 'ready' || message === 'ready') {
       readyRef.current = true;
+      readyResolveRef.current?.();
       queueRef.current.forEach((item) =>
         injectProcessImage(item.base64, item.width, item.height, item.pxPerCell)
       );

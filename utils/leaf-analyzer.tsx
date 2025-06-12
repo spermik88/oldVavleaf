@@ -46,11 +46,16 @@ export class OpenCvAnalyzer implements LeafAnalyzer {
   private fallback = new FallbackAnalyzer();
   constructor(private webRef: React.RefObject<OpenCVHandle>) {}
 
+  private async sendImage(base64: string, width: number, height: number) {
+    await this.webRef.current?.waitUntilReady();
+    this.webRef.current?.sendImage(base64, width, height, 30);
+  }
+
   setReady(value: boolean) {
     this.ready = value;
     if (this.ready && this.queue.length > 0) {
       const item = this.queue[0];
-      this.webRef.current?.sendImage(item.base64, item.width, item.height, 30);
+      void this.sendImage(item.base64, item.width, item.height);
     }
   }
 
@@ -72,7 +77,7 @@ export class OpenCvAnalyzer implements LeafAnalyzer {
     });
     if (this.queue.length > 0) {
       const next = this.queue[0];
-      this.webRef.current?.sendImage(next.base64, next.width, next.height, 30);
+      void this.sendImage(next.base64, next.width, next.height);
     }
   }
 
@@ -81,7 +86,7 @@ export class OpenCvAnalyzer implements LeafAnalyzer {
     if (!item) return;
     item.attempts += 1;
     if (item.attempts < 3) {
-      this.webRef.current?.sendImage(item.base64, item.width, item.height, 30);
+      await this.sendImage(item.base64, item.width, item.height);
       return;
     }
     this.queue.shift();
@@ -103,7 +108,7 @@ export class OpenCvAnalyzer implements LeafAnalyzer {
     }
     if (this.queue.length > 0) {
       const next = this.queue[0];
-      this.webRef.current?.sendImage(next.base64, next.width, next.height, 30);
+      void this.sendImage(next.base64, next.width, next.height);
     }
   }
 
@@ -134,7 +139,7 @@ export class OpenCvAnalyzer implements LeafAnalyzer {
       };
       this.queue.push(item);
       if (this.ready && this.queue.length === 1) {
-        this.webRef.current?.sendImage(base64, width, height, 30);
+        void this.sendImage(base64, width, height);
       }
     });
   }
@@ -173,6 +178,15 @@ export const LeafAnalyzerProvider = ({ children }: { children: React.ReactNode }
 
   const [isOpenCvReady, setIsOpenCvReady] = useState(Platform.OS === "web");
 
+  useEffect(() => {
+    if (analyzer instanceof OpenCvAnalyzer) {
+      webRef.current?.waitUntilReady().then(() => {
+        analyzer.setReady(true);
+        setIsOpenCvReady(true);
+      });
+    }
+  }, [analyzer]);
+
   const onResult = (
     res: {
       area: number;
@@ -187,12 +201,6 @@ export const LeafAnalyzerProvider = ({ children }: { children: React.ReactNode }
     }
   };
 
-  const onReady = () => {
-    if (analyzer instanceof OpenCvAnalyzer) {
-      analyzer.setReady(true);
-      setIsOpenCvReady(true);
-    }
-  };
 
   const onError = (message: string) => {
     if (analyzer instanceof OpenCvAnalyzer) {
@@ -213,7 +221,6 @@ export const LeafAnalyzerProvider = ({ children }: { children: React.ReactNode }
         <OpenCVWorker
           ref={webRef}
           onResult={onResult}
-          onReady={onReady}
           onError={onError}
           debug={__DEV__}
         />
