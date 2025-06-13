@@ -1,4 +1,3 @@
-// @ts-nocheck
 import LeafContour from "@/components/LeafContour";
 import { useLeafAnalyzer } from "@/utils/leaf-analyzer";
 
@@ -16,7 +15,7 @@ import {
   Pressable
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { CameraView, CameraType, CameraViewRef, useCameraPermissions } from "expo-camera";
+import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
 import { router } from "expo-router";
 import { Settings, Image as ImageIcon, Camera, RefreshCw, MapPin } from "lucide-react-native";
 import * as Location from "expo-location";
@@ -49,7 +48,7 @@ export default function CameraScreen() {
   const [showCaptureAnimation, setShowCaptureAnimation] = useState(false);
   const [slideToGalleryAnimation] = useState(new Animated.Value(0));
   const [cameraReady, setCameraReady] = useState(false);
-  const cameraRef = useRef<CameraViewRef>(null);
+  const cameraRef = useRef<CameraView>(null);
   const { capturedImages, addCapturedImage } = useLeafStore();
   const { highResolutionCapture, saveGpsData, manualFocusOnly } = useSettingsStore();
 
@@ -175,10 +174,9 @@ const captureAndSend = async () => {
     setProcessingFrame(true);
 
     if (!cameraRef.current) return;
-    const photo = await (cameraRef.current as any).takePictureAsync({
+    const photo = await cameraRef.current.takePictureAsync({
       quality: 0.5,
       base64: true,
-      skipMetadata: true,
     });
 
     if (!photo?.base64 || !photo?.width || !photo?.height) return;
@@ -215,7 +213,7 @@ const captureAndSend = async () => {
     setIsCalculating(true);
     
     try {
-      const photo = await (cameraRef.current as any)?.takePictureAsync();
+      const photo = await cameraRef.current?.takePictureAsync();
       if (!photo?.uri) throw new Error('No photo');
       const newArea = await analyzer.analyzeArea(photo.uri, false);
       const newContour = await analyzer.findContour(photo.uri);
@@ -285,7 +283,7 @@ const capturePhoto = async () => {
       return;
     }
 
-    const photo = await (cameraRef.current as any).takePictureAsync();
+    const photo = await cameraRef.current.takePictureAsync();
     if (!photo?.uri) {
       setIsCapturing(false);
       return;

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import * as ImageManipulator from "expo-image-manipulator";
 import * as FileSystem from "expo-file-system";
 import { Platform } from "react-native";
@@ -16,7 +15,7 @@ export async function analyzeLeafArea(imageUri: string | null, isLivePreview: bo
       // В реальной реализации с OpenCV здесь бы использовались cvtColor, GaussianBlur, Canny и т.д.
       const manipulatedImage = await ImageManipulator.manipulateAsync(
         imageUri,
-        [{ grayscale: true }],
+        [{ grayscale: true } as any],
         { compress: 0.5, format: ImageManipulator.SaveFormat.JPEG }
       );
       
@@ -111,7 +110,7 @@ export async function convertToGrayscale(imageUri: string): Promise<string> {
     // В реальной реализации с OpenCV это был бы cv.cvtColor с COLOR_RGBA2GRAY
     const result = await ImageManipulator.manipulateAsync(
       imageUri,
-      [{ grayscale: true }],
+      [{ grayscale: true } as any],
       { compress: 0.5, format: ImageManipulator.SaveFormat.JPEG }
     );
     

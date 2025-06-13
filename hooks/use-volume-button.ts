@@ -22,13 +22,22 @@ export function useVolumeButtonListener(callback: () => void) {
     };
     
     // Если доступен нативный модуль для кнопок громкости, используем его
-    if (Platform.OS === 'android' && typeof global.VolumeButtonListener !== 'undefined') {
+    if (
+      Platform.OS === 'android' &&
+      typeof (globalThis as any).VolumeButtonListener !== 'undefined'
+    ) {
       // Добавляем слушатель для кнопки громкости +
-      global.VolumeButtonListener?.addListener('volumeUp', handleVolumePress);
+      (globalThis as any).VolumeButtonListener?.addListener(
+        'volumeUp',
+        handleVolumePress
+      );
       
       // Очищаем слушатель при размонтировании компонента
       return () => {
-        global.VolumeButtonListener?.removeListener('volumeUp', handleVolumePress);
+        (globalThis as any).VolumeButtonListener?.removeListener(
+          'volumeUp',
+          handleVolumePress
+        );
       };
     } else if (Platform.OS === 'android') {
       // Для Android можно использовать BackHandler как заглушку
