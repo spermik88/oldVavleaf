@@ -13,7 +13,7 @@ const mockWaitUntilReady = jest.fn(() => Promise.resolve());
 jest.mock('../components/OpenCVWorker', () => {
   const React = require('react');
   const { forwardRef, useImperativeHandle, useEffect } = React;
-  return forwardRef((props: any, ref) => {
+  return forwardRef((props: any, ref: React.Ref<any>) => {
     useImperativeHandle(ref, () => ({
       sendImage: mockSendImage,
       waitUntilReady: mockWaitUntilReady,
