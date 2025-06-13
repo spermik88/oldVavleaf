@@ -13,25 +13,25 @@ interface SettingsStore {
 }
 
 export const useSettingsStore = create<SettingsStore>()(
-  persist(
+  persist<SettingsStore>(
     (set) => ({
       highResolutionCapture: true,
       saveGpsData: true,
       manualFocusOnly: true,
       
-      toggleHighResolutionCapture: () => 
-        set((state) => ({ 
-          highResolutionCapture: !state.highResolutionCapture 
+      toggleHighResolutionCapture: () =>
+        set((state: SettingsStore) => ({
+          highResolutionCapture: !state.highResolutionCapture
         })),
       
-      toggleSaveGpsData: () => 
-        set((state) => ({ 
-          saveGpsData: !state.saveGpsData 
+      toggleSaveGpsData: () =>
+        set((state: SettingsStore) => ({
+          saveGpsData: !state.saveGpsData
         })),
       
-      toggleManualFocusOnly: () => 
-        set((state) => ({ 
-          manualFocusOnly: !state.manualFocusOnly 
+      toggleManualFocusOnly: () =>
+        set((state: SettingsStore) => ({
+          manualFocusOnly: !state.manualFocusOnly
         })),
     }),
     {

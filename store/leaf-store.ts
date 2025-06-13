@@ -23,24 +23,24 @@ interface LeafStore {
 }
 
 export const useLeafStore = create<LeafStore>()(
-  persist(
+  persist<LeafStore>(
     (set) => ({
       capturedImages: [],
-      
-      addCapturedImage: (image) => 
-        set((state) => ({
+
+      addCapturedImage: (image: LeafImage) =>
+        set((state: LeafStore) => ({
           capturedImages: [image, ...state.capturedImages]
         })),
-      
-      removeCapturedImage: (id) => 
-        set((state) => ({
+
+      removeCapturedImage: (id: string) =>
+        set((state: LeafStore) => ({
           capturedImages: state.capturedImages.filter(img => img.id !== id)
         })),
       
       clearAllImages: () => 
         set({ capturedImages: [] }),
         
-      setCapturedImages: (images) => 
+      setCapturedImages: (images: LeafImage[]) =>
         set({ capturedImages: images }),
     }),
     {

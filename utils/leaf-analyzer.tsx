@@ -46,7 +46,7 @@ export class OpenCvAnalyzer implements LeafAnalyzer {
   private ready = false;
   private queue: QueueItem[] = [];
   private fallback = new FallbackAnalyzer();
-  constructor(private webRef: React.RefObject<OpenCVHandle>) {}
+  constructor(private webRef: React.RefObject<OpenCVHandle | null>) {}
 
   private async sendImage(base64: string, width: number, height: number) {
     await this.webRef.current?.waitUntilReady();
