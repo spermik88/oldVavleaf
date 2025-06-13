@@ -5,13 +5,20 @@
     "jsx": "react",
     "strict": true,
     "esModuleInterop": true,
-    "skipLibCheck": true,
-    "lib": ["es2020", "dom"],
+    "skipLibCheck": false,
+    "types": ["jest", "react-native", "react"],
+    "typeRoots": ["./types", "./node_modules/@types"],
+    "lib": ["es2020"],
     "baseUrl": "./",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "react-native": ["./node_modules/@types/react-native"],
+      "expo-router/build/*": ["./types/stubs/expo-router.d.ts"],
+      "react-native-screens/lib/typescript/*": ["./types/stubs/react-native-screens.d.ts"],
+      "react-native-svg/lib/typescript/*": ["./types/stubs/react-native-svg.d.ts"],
+      "zustand/middleware": ["./types/stubs/zustand-middleware.d.ts"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "node_modules/react-native"]
 }
