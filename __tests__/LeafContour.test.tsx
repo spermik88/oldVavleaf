@@ -14,10 +14,10 @@ describe('LeafContour', () => {
   });
 
   it('returns null when no points provided', () => {
-    let tree;
+    let tree: renderer.ReactTestRenderer | null = null;
     act(() => {
       tree = renderer.create(<LeafContour points={[]} />);
     });
-    expect(tree.toJSON()).toBeNull();
+    expect(tree!.toJSON()).toBeNull();
   });
 });
