@@ -2,6 +2,9 @@ const { getDefaultConfig } = require('expo/metro-config');
 
 const config = getDefaultConfig(__dirname);
 
+// Ensure HTML files are treated as assets
+config.resolver.assetExts.push('html');
+
 config.server = {
   ...config.server,
   enhanceMiddleware: (middleware) => {
