@@ -76,3 +76,8 @@ npx expo export -p web
 ```bash
 npm test
 ```
+
+При возникновении ошибки вида `Could not locate module react-native` убедитесь,
+что зависимости установлены командой `npm install`, а файл `jest.config.js`
+содержит настройку `preset: 'jest-expo'` и маппинг `moduleNameMapper` для
+`react-native`.
