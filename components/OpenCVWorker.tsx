@@ -129,6 +129,14 @@ const OpenCVWorker = forwardRef((props: Props, ref) => {
         originWhitelist={['*']}
         source={{ uri: `${htmlUri}${props.debug ? '?debug=true' : ''}` }}
         onMessage={handleMessage}
+        onError={(e) => {
+          console.error('Ошибка загрузки WebView:', e.nativeEvent);
+          props.onError?.('WebView error');
+        }}
+        onHttpError={(e) => {
+          console.error('HTTP ошибка WebView:', e.nativeEvent);
+          props.onError?.('WebView HTTP error');
+        }}
         javaScriptEnabled={true}
         style={styles.webview}
       />

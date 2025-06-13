@@ -10,7 +10,7 @@
   </head>
   <body>
     <canvas id="canvas"></canvas>
-    <script async src="opencv.js" onload="onOpenCvReady();"></script>
+    <script async src="opencv.js" onload="onOpenCvReady();" onerror="onOpenCvError();"></script>
     <script>
       let debug = false;
       const params = new URLSearchParams(window.location.search);
@@ -27,6 +27,12 @@
           );
           window.ReactNativeWebView.postMessage('ready');
         };
+      }
+
+      function onOpenCvError() {
+        window.ReactNativeWebView.postMessage(
+          JSON.stringify({ type: 'error', message: 'Failed to load OpenCV script' })
+        );
       }
 
       window.processImage = function(imageData, width, height, pxPerCell) {
