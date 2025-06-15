@@ -169,12 +169,12 @@ const LeafAnalyzerContext = createContext<LeafAnalyzer>(new FallbackAnalyzer());
 
 export const LeafAnalyzerProvider = ({ children }: { children: React.ReactNode }) => {
   const webRef = useRef<OpenCVHandle>(null);
-  const analyzer = useMemo<LeafAnalyzer>(() => {
+  const [analyzer, setAnalyzer] = useState<LeafAnalyzer>(() => {
     if (Platform.OS === "web") {
       return new FallbackAnalyzer();
     }
     return new OpenCvAnalyzer(webRef);
-  }, []);
+  });
 
   useEffect(() => {
     return () => {
@@ -185,15 +185,16 @@ export const LeafAnalyzerProvider = ({ children }: { children: React.ReactNode }
   }, [analyzer]);
 
   const [isOpenCvReady, setIsOpenCvReady] = useState(Platform.OS === "web");
+  const [opencvError, setOpenCvError] = useState(false);
 
   useEffect(() => {
-    if (analyzer instanceof OpenCvAnalyzer) {
+    if (analyzer instanceof OpenCvAnalyzer && !opencvError) {
       webRef.current?.waitUntilReady().then(() => {
         analyzer.setReady(true);
         setIsOpenCvReady(true);
       });
     }
-  }, [analyzer]);
+  }, [analyzer, opencvError]);
 
   const onResult = (
     res: {
@@ -212,14 +213,20 @@ export const LeafAnalyzerProvider = ({ children }: { children: React.ReactNode }
 
   const onError = (message: string) => {
     if (analyzer instanceof OpenCvAnalyzer) {
-      analyzer.handleError(message);
+      if (!isOpenCvReady) {
+        setOpenCvError(true);
+        setAnalyzer(new FallbackAnalyzer());
+        Alert.alert('Ошибка OpenCV', 'Не удалось загрузить библиотеку. Используется резервный алгоритм');
+      } else {
+        analyzer.handleError(message);
+      }
     }
   };
 
   return (
     <LeafAnalyzerContext.Provider value={analyzer}>
       {children}
-      {analyzer instanceof OpenCvAnalyzer && !isOpenCvReady && (
+      {analyzer instanceof OpenCvAnalyzer && !isOpenCvReady && !opencvError && (
         <View style={styles.initOverlay} pointerEvents="none">
           <ActivityIndicator size="large" color={Colors.text.primary} />
           <Text style={styles.initText}>Инициализация…</Text>
