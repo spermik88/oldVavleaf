@@ -19,7 +19,6 @@ import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
 import { router } from "expo-router";
 import { Settings, Image as ImageIcon, Camera, RefreshCw, MapPin } from "lucide-react-native";
 import * as Location from "expo-location";
-import * as FileSystem from "expo-file-system";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
 import Slider from "@react-native-community/slider";
@@ -67,7 +66,7 @@ export default function CameraScreen() {
         .padStart(2, '0')}.${now.getFullYear()}`;
       const area = await analyzer.analyzeArea(uri, false);
       const contour = await analyzer.findContour(uri);
-      await handleOpenCVResult(null, dateStr, area, contour);
+      await handleOpenCVResult({ uri }, dateStr, area, contour);
     } catch (error) {
       console.error('Ошибка при выборе изображения:', error);
       Alert.alert('Ошибка', 'Не удалось обработать изображение');
@@ -84,12 +83,9 @@ export default function CameraScreen() {
   ) => {
 
     const filename = `${dateStr}_${area.toFixed(2)}.jpg`;
-    const tempDir = `${FileSystem.cacheDirectory}temp/`;
-    await FileSystem.makeDirectoryAsync(tempDir, { intermediates: true }).catch(() => {});
-    const tempUri = `${tempDir}temp_${Date.now()}.jpg`;
 
     const savedImageUri = await saveImageWithExif(
-      tempUri,
+      photo.uri,
       filename,
       area,
       saveGpsData && location ? {
