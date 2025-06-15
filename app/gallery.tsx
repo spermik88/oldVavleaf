@@ -116,12 +116,10 @@ export default function GalleryScreen() {
       style={styles.imageItem}
       onPress={() => showDetails(item)}
     >
-      {/* Изображение листа */}
-      <View style={styles.imagePlaceholder}>
-        {/* В реальном приложении здесь было бы изображение */}
-        <Text style={styles.placeholderText}>Лист</Text>
-        <Text style={styles.placeholderArea}>{item.leafArea} см²</Text>
-      </View>
+      <Image
+        source={{ uri: item.uri }}
+        style={styles.imagePreview}
+      />
       
       <View style={styles.imageInfo}>
         <View style={styles.infoRow}>
@@ -209,11 +207,10 @@ export default function GalleryScreen() {
             {selectedImage && (
               <>
                 <View style={styles.detailImageContainer}>
-                  <View style={styles.detailImagePlaceholder}>
-                    {/* В реальном приложении здесь было бы изображение */}
-                    <Text style={styles.placeholderText}>Лист</Text>
-                    <Text style={styles.detailPlaceholderArea}>{selectedImage.leafArea} см²</Text>
-                  </View>
+                  <Image
+                    source={{ uri: selectedImage.uri }}
+                    style={styles.detailImage}
+                  />
                 </View>
                 
                 <View style={styles.detailsSection}>
@@ -317,22 +314,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: "hidden",
   },
-  imagePlaceholder: {
+  imagePreview: {
     width: ITEM_WIDTH,
     height: ITEM_WIDTH,
-    backgroundColor: Colors.background.surface,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  placeholderText: {
-    color: Colors.text.secondary,
-    fontSize: 16,
-  },
-  placeholderArea: {
-    color: Colors.primary,
-    fontSize: 18,
-    fontWeight: "bold",
-    marginTop: 8,
   },
   imageInfo: {
     padding: 12,
@@ -419,19 +403,10 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: "center",
   },
-  detailImagePlaceholder: {
+  detailImage: {
     width: width * 0.6,
     height: width * 0.6,
-    backgroundColor: Colors.background.surface,
     borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  detailPlaceholderArea: {
-    color: Colors.primary,
-    fontSize: 24,
-    fontWeight: "bold",
-    marginTop: 12,
   },
   detailsSection: {
     padding: 16,
