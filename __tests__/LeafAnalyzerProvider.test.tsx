@@ -1,3 +1,8 @@
+/*
+ * Тесты React компонента LeafAnalyzerProvider.
+ * Использует utils/leaf-analyzer и мок OpenCVWorker.
+ * Проверяет обработку результата WebView.
+ */
 import React from 'react';
 import { render, waitFor } from '@testing-library/react-native';
 import { LeafAnalyzerProvider } from '../utils/leaf-analyzer';

@@ -1,3 +1,7 @@
+/*
+ * Конфигурация Metro bundler для Expo.
+ * Добавляет поддержку HTML и перенаправление opencv ресурсов.
+ */
 const { getDefaultConfig } = require('expo/metro-config');
 
 const config = getDefaultConfig(__dirname);

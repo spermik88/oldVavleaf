@@ -1,3 +1,8 @@
+/*
+ * Тесты компонента LeafContour.
+ * Используется react-test-renderer и React.
+ * Проверяется корректный рендер и отсутствие ошибок.
+ */
 import React from 'react';
 import renderer, { act } from 'react-test-renderer';
 import LeafContour from '../components/LeafContour';

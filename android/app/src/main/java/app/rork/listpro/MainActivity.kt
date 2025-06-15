@@ -1,3 +1,8 @@
+/*
+ * Главная activity React Native.
+ * Инициализирует SplashScreen и подключается в AndroidManifest.xml.
+ * Использует стандартный ReactActivityDelegate.
+ */
 package app.rork.listpro
 import expo.modules.splashscreen.SplashScreenManager
 

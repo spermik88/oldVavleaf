@@ -1,4 +1,5 @@
 #!/bin/sh
+# Скрипт Gradle Wrapper для Unix. Используется для сборки Android.
 
 #
 # Copyright © 2015-2021 the original authors.

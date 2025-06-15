@@ -1,3 +1,7 @@
+/*
+ * Экран 404 для маршрутов Expo Router.
+ * Показывает ссылку на главную страницу.
+ */
 import React from "react";
 import { Link, Stack } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";

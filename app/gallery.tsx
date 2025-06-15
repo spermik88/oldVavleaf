@@ -1,3 +1,8 @@
+/*
+ * Экран галереи сохраненных снимков.
+ * Использует zustand-хранилище leaf-store и FileSystem.
+ * Позволяет просматривать, делиться и удалять изображения.
+ */
 import React, { useState } from "react";
 import { 
   StyleSheet, 

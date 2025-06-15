@@ -1,3 +1,7 @@
+<!--
+Стили приложения и тема сплэш-экрана.
+Ссылается на цвета и ресурсы drawable.
+-->
 <resources xmlns:tools="http://schemas.android.com/tools">
   <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
     <item name="android:editTextBackground">@drawable/rn_edit_text_material</item>

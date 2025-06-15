@@ -1,3 +1,7 @@
+<!--
+Палитра цветов приложения.
+Используется темами и сплэш-экраном.
+-->
 <resources>
   <color name="splashscreen_background">#ffffff</color>
   <color name="iconBackground">#ffffff</color>

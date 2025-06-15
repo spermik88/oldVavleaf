@@ -1,3 +1,7 @@
+/*
+ * Компонент LeafContour отображает найденный контур листа.
+ * Использует библиотеку react-native-svg и принимает массив точек.
+ */
 import React from "react";
 import Svg, { Polyline } from "react-native-svg";
 

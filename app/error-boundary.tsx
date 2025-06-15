@@ -1,3 +1,8 @@
+/*
+ * Компонент ErrorBoundary для перехвата ошибок.
+ * Отображает информацию об ошибке и кнопку перезагрузки.
+ * Используется в RootLayout.
+ */
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform } from 'react-native';
 import Colors from '@/constants/colors';

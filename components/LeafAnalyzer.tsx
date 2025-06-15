@@ -1,3 +1,7 @@
+/*
+ * Компонент демонстрации анализа листа через WebView.
+ * Загружает страницу opencv.html и отправляет изображение для подсчета площади.
+ */
 // components/LeafAnalyzer.tsx
 import React, { useRef, useState } from 'react';
 import { View, Button, Text } from 'react-native';

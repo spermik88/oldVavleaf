@@ -1,3 +1,8 @@
+/*
+ * Layout вкладок приложения.
+ * Использует компонент Tabs из expo-router и определяет иконки.
+ * Отображается в RootLayout.
+ */
 import React from "react";
 import { Tabs } from "expo-router";
 import { Leaf, Settings, Image } from "lucide-react-native";

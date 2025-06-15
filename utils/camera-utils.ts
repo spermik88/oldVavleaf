@@ -1,3 +1,7 @@
+/*
+ * Вспомогательные функции работы с камерой и изображениями.
+ * Симулирует анализ площади и контуров без использования OpenCV.
+ */
 import * as ImageManipulator from "expo-image-manipulator";
 import * as FileSystem from "expo-file-system";
 import { Platform } from "react-native";
