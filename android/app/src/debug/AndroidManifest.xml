@@ -1,3 +1,8 @@
+<!--
+Манифест debug-сборки Android.
+Добавляет разрешения для SYSTEM_ALERT_WINDOW и включает отладочные параметры.
+Используется вместе с основным AndroidManifest.xml.
+-->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 

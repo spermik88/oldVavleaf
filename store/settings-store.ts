@@ -1,3 +1,7 @@
+/*
+ * Zustand-хранилище настроек камеры и сохранения.
+ * Персистится через AsyncStorage и управляет переключателями.
+ */
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";

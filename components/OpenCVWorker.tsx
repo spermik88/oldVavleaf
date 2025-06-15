@@ -1,3 +1,8 @@
+/*
+ * Компонент OpenCVWorker оборачивает WebView с OpenCV.
+ * Предоставляет методы отправки изображений и обработки результатов.
+ * Используется в utils/leaf-analyzer.
+ */
 import React, { useRef, forwardRef, useImperativeHandle, useState, useEffect } from 'react';
 import { WebView, WebViewMessageEvent } from "react-native-webview";
 import { View, ActivityIndicator, StyleSheet } from 'react-native';

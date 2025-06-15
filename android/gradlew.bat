@@ -1,4 +1,5 @@
 @rem
+@rem Скрипт Gradle Wrapper для Windows. Используется для сборки Android.
 @rem Copyright 2015 the original author or authors.
 @rem
 @rem Licensed under the Apache License, Version 2.0 (the "License");

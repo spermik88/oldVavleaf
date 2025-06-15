@@ -1,3 +1,8 @@
+/*
+ * Экран камеры и основной логики измерения.
+ * Использует CameraView, LeafContour и утилиты анализа.
+ * Обрабатывает съемку, расчет площади и сохранение снимков.
+ */
 import LeafContour from "@/components/LeafContour";
 import { useLeafAnalyzer } from "@/utils/leaf-analyzer";
 

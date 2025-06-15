@@ -1,3 +1,8 @@
+/*
+ * Gradle-скрипт модуля приложения.
+ * Подключает React Native и Expo плагины, задает параметры сборки.
+ * Используется вместе с android/gradle.properties.
+ */
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"

@@ -1,3 +1,8 @@
+/*
+ * Реализация провайдера LeafAnalyzer и классов анализа.
+ * Использует OpenCVWorker для обработки изображений через WebView.
+ * Позволяет вычислять площадь и находить контур листа.
+ */
 export interface LeafAnalyzer {
   analyzeArea(imageUri: string | null, isLivePreview: boolean): Promise<number>;
   findContour(imageUri: string | null): Promise<{ x: number; y: number }[]>;

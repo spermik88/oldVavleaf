@@ -1,3 +1,7 @@
+/*
+ * Конфигурация Gradle settings проекта.
+ * Подключает плагины React Native и Expo и задает имя приложения.
+ */
 pluginManagement {
   def reactNativeGradlePlugin = new File(
     providers.exec {

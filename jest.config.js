@@ -1,3 +1,7 @@
+/*
+ * Конфигурация Jest для тестирования.
+ * Использует preset jest-expo и маппинг модулей.
+ */
 module.exports = {
   preset: 'jest-expo',
   moduleFileExtensions: ['ts', 'tsx', 'js'],

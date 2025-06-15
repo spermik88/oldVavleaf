@@ -1,3 +1,7 @@
+/*
+ * Цветовая палитра интерфейса.
+ * Экспортируется для использования в стилях.
+ */
 export default {
   primary: "#4CAF50", // Green primary color
   secondary: "#8BC34A", // Light green secondary color

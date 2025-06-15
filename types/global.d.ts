@@ -1,3 +1,7 @@
+/*
+ * Глобальные объявления TypeScript для нативных модулей.
+ * Описываются интерфейсы VolumeButtonListener, ExifWriter и OpenCV.
+ */
 // Global type declarations for native modules
 declare global {
   // Define the VolumeButtonListener interface

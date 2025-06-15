@@ -1,3 +1,8 @@
+/*
+ * Тесты zustand-хранилища leaf-store.
+ * Использует useLeafStore и мок AsyncStorage.
+ * Проверяет добавление, удаление и очистку изображений.
+ */
 import { useLeafStore } from '../store/leaf-store';
 
 jest.mock('@react-native-async-storage/async-storage', () =>

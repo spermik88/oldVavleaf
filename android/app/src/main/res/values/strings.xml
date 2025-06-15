@@ -1,3 +1,7 @@
+<!--
+Строковые ресурсы приложения и параметры сплэш-экрана.
+Используются в AndroidManifest и компонентах.
+-->
 <resources>
   <string name="app_name">ЛистПро</string>
   <string name="expo_splash_screen_resize_mode" translatable="false">contain</string>

@@ -1,3 +1,8 @@
+/*
+ * Тесты zustand-хранилища settings-store.
+ * Использует useSettingsStore и мок AsyncStorage.
+ * Проверяются переключатели настроек.
+ */
 import { useSettingsStore } from '../store/settings-store';
 
 jest.mock('@react-native-async-storage/async-storage', () =>

@@ -1,3 +1,8 @@
+/*
+ * Корневой layout приложения.
+ * Загружает шрифты, обрабатывает SplashScreen и подключает LeafAnalyzerProvider.
+ * Определяет стек навигации.
+ */
 import React from "react";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useFonts } from "expo-font";

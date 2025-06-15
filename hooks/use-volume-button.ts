@@ -1,3 +1,7 @@
+/*
+ * Хук useVolumeButtonListener обрабатывает нажатия кнопки громкости.
+ * Может использовать нативный модуль VolumeButtonListener на Android.
+ */
 import { useEffect } from 'react';
 import { BackHandler, Platform } from 'react-native';
 

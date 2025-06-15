@@ -1,3 +1,7 @@
+/*
+ * Утилиты для сохранения изображений и работы с EXIF.
+ * Позволяют добавлять метаданные и форматировать координаты.
+ */
 import * as FileSystem from "expo-file-system";
 import * as ImageManipulator from "expo-image-manipulator";
 import { Platform } from "react-native";

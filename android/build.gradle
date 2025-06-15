@@ -1,3 +1,8 @@
+/*
+ * Главный Gradle-скрипт проекта.
+ * Подключает плагины React Native, Kotlin и Expo.
+ * Определяет репозитории и общие зависимости.
+ */
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {

@@ -1,3 +1,7 @@
+/*
+ * Класс Application для настройки React Native Host.
+ * Инициализирует Expo модули и загружает New Architecture при необходимости.
+ */
 package app.rork.listpro
 
 import android.app.Application
