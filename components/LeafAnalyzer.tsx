@@ -2,6 +2,7 @@
 import React, { useRef, useState } from 'react';
 import { View, Button, Text } from 'react-native';
 import { WebView, WebViewMessageEvent } from "react-native-webview";
+import { BASE_URL } from "@/constants/config";
 
 export default function LeafAnalyzer() {
   const webViewRef = useRef<WebView>(null);
@@ -42,7 +43,7 @@ export default function LeafAnalyzer() {
     <View style={{ flex: 1 }}>
       <WebView
         ref={webViewRef}
-        source={{ uri: `http://localhost:8081/opencv.html${debug ? '?debug=true' : ''}` }}
+        source={{ uri: `http://${BASE_URL}/opencv.html${debug ? '?debug=true' : ''}` }}
         onMessage={handleMessage}
         javaScriptEnabled={true}
         originWhitelist={['*']}

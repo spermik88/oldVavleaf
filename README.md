@@ -59,6 +59,14 @@ npx expo export -p web
 - **types/** – глобальные типы TypeScript;
 - конфигурационные файлы `metro.config.js`, `jest.config.js`, `tsconfig.json`.
 
+## Переменные окружения
+При необходимости можно переопределить адрес, с которого загружается страница
+с OpenCV. Для этого задайте переменную `EXPO_PUBLIC_BASE_URL`:
+```bash
+EXPO_PUBLIC_BASE_URL=192.168.1.10:8081 npm start
+```
+По умолчанию используется `localhost:8081`.
+
 ## Полезные npm‑скрипты
 Из файла `package.json`:
 ```json
