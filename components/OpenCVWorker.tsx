@@ -142,6 +142,8 @@ const OpenCVWorker = forwardRef((props: Props, ref) => {
           console.error('HTTP ошибка WebView:', e.nativeEvent);
           props.onError?.('WebView HTTP error');
         }}
+        allowFileAccess
+        allowFileAccessFromFileURLs={true}
         javaScriptEnabled={true}
         style={styles.webview}
       />
