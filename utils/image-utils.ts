@@ -19,7 +19,7 @@ export async function saveImageWithExif(
   try {
     // Создаем директорию для сохранения, если она не существует
     const dirUri = `${FileSystem.documentDirectory}листы/`;
-    
+
     try {
       const dirInfo = await FileSystem.getInfoAsync(dirUri);
       if (!dirInfo.exists) {
@@ -27,74 +27,33 @@ export async function saveImageWithExif(
       }
     } catch (error) {
       console.error("Ошибка при создании директории:", error);
-      // Продолжаем выполнение, используя кэш-директорию как запасной вариант
     }
-    
-    // Полный путь для сохранения файла
+
     const destinationUri = `${dirUri}${filename}`;
-    
-    // Создаем пустой файл для симуляции
-    try {
-      // Проверяем, существует ли исходный файл
-      const sourceInfo = await FileSystem.getInfoAsync(imageUri);
-      
-      if (sourceInfo.exists) {
-        // Если файл существует, копируем его
-        await FileSystem.copyAsync({
-          from: imageUri,
-          to: destinationUri
-        });
-      } else {
-        // Если файла нет, создаем пустой файл
-        await FileSystem.writeAsStringAsync(
-          destinationUri,
-          "Placeholder for leaf image"
-        );
-      }
-      
-      console.log(`Изображение сохранено: ${destinationUri}`);
-      console.log(`Площадь листа: ${leafArea} см²`);
-      
-      if (location) {
-        console.log(`GPS: ${location.latitude}, ${location.longitude}`);
-        // В реальной реализации здесь бы использовался ExifInterface (Android)
-        // или piexifjs для записи GPS-координат в EXIF:
-        // GPSLatitude, GPSLatitudeRef (например: 55°45'30.00"N)
-        // GPSLongitude, GPSLongitudeRef (например: 37°39'35.00"E)
-        // Пример:
-        // const exif = new ExifInterface(destinationUri);
-        // exif.setLatLong(location.latitude, location.longitude);
-        // exif.saveAttributes();
-      }
-      
-      return destinationUri;
-    } catch (error) {
-      console.error("Ошибка при сохранении файла:", error);
-      
-      // Используем кэш-директорию как запасной вариант
-      const fallbackUri = `${FileSystem.cacheDirectory}${filename}`;
-      await FileSystem.writeAsStringAsync(
-        fallbackUri,
-        "Placeholder for leaf image"
-      );
-      
-      return fallbackUri;
+
+    const sourceInfo = await FileSystem.getInfoAsync(imageUri);
+    if (!sourceInfo.exists) {
+      throw new Error("Исходный файл не найден");
     }
+
+    const exifData: any = { LeafArea: leafArea };
+    if (location) {
+      exifData.GPSLatitude = formatGpsCoordinate(location.latitude);
+      exifData.GPSLatitudeRef = location.latitude >= 0 ? "N" : "S";
+      exifData.GPSLongitude = formatGpsCoordinate(location.longitude);
+      exifData.GPSLongitudeRef = location.longitude >= 0 ? "E" : "W";
+    }
+
+    if (typeof ExifWriter !== "undefined") {
+      await ExifWriter.writeExifToJpeg(imageUri, destinationUri, exifData);
+    } else {
+      await FileSystem.copyAsync({ from: imageUri, to: destinationUri });
+    }
+
+    return destinationUri;
   } catch (error) {
     console.error("Ошибка при сохранении изображения:", error);
-    
-    // Возвращаем путь к временному файлу в случае ошибки
-    const errorUri = `${FileSystem.cacheDirectory}error_${Date.now()}.jpg`;
-    try {
-      await FileSystem.writeAsStringAsync(
-        errorUri,
-        "Error placeholder"
-      );
-    } catch (e) {
-      console.error("Критическая ошибка при создании временного файла:", e);
-    }
-    
-    return errorUri;
+    throw error;
   }
 }
 
