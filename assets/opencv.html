@@ -58,42 +58,44 @@
 
             let gray = new cv.Mat();
             cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
-            cv.GaussianBlur(gray, gray, new cv.Size(5,5), 0);
-            let edges = new cv.Mat();
-            cv.Canny(gray, edges, 50, 150);
+            cv.threshold(
+              gray,
+              gray,
+              0,
+              255,
+              cv.THRESH_BINARY_INV + cv.THRESH_OTSU
+            );
 
             let contours = new cv.MatVector();
             let hierarchy = new cv.Mat();
-            cv.findContours(edges, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+            cv.findContours(
+              gray,
+              contours,
+              hierarchy,
+              cv.RETR_EXTERNAL,
+              cv.CHAIN_APPROX_SIMPLE
+            );
             let contourCount = contours.size();
             let markerFound = false;
             let calculatedPxPerCell = pxPerCell;
+            let markerRect = null;
 
             for (let i = 0; i < contours.size(); ++i) {
               const cnt = contours.get(i);
               if (cnt.data32S.length >= 8) {
-                let minX = Number.MAX_VALUE, minY = Number.MAX_VALUE;
-                let maxX = 0, maxY = 0;
-                for (let j = 0; j < cnt.data32S.length; j += 2) {
-                  const x = cnt.data32S[j];
-                  const y = cnt.data32S[j + 1];
-                  if (x < minX) minX = x;
-                  if (y < minY) minY = y;
-                  if (x > maxX) maxX = x;
-                  if (y > maxY) maxY = y;
-                }
-                const widthR = maxX - minX;
-                const heightR = maxY - minY;
-                const aspect = widthR / heightR;
-                const areaR = widthR * heightR;
+                const rect = cv.boundingRect(cnt);
+                const aspect = rect.width / rect.height;
                 if (
                   aspect > 0.8 &&
                   aspect < 1.2 &&
-                  areaR > pxPerCell * pxPerCell * 0.5 &&
-                  areaR < pxPerCell * pxPerCell * 2
+                  rect.width > pxPerCell * 0.8 &&
+                  rect.width < pxPerCell * 1.2 &&
+                  rect.height > pxPerCell * 0.8 &&
+                  rect.height < pxPerCell * 1.2
                 ) {
                   markerFound = true;
-                  calculatedPxPerCell = Math.sqrt(areaR);
+                  calculatedPxPerCell = (rect.width + rect.height) / 2;
+                  markerRect = rect;
                   break;
                 }
               }
@@ -122,6 +124,18 @@
             let maxArea = 0;
             for (let i = 0; i < contours.size(); ++i) {
               const cnt = contours.get(i);
+              if (markerFound && markerRect) {
+                const rect = cv.boundingRect(cnt);
+                const aspect = rect.width / rect.height;
+                if (
+                  aspect > 0.8 &&
+                  aspect < 1.2 &&
+                  Math.abs(rect.width - markerRect.width) < markerRect.width * 0.2 &&
+                  Math.abs(rect.height - markerRect.height) < markerRect.height * 0.2
+                ) {
+                  continue; // пропускаем маркер
+                }
+              }
               const area = cv.contourArea(cnt);
               if (area > maxArea) {
                 maxArea = area;
@@ -134,7 +148,8 @@
 
             let result = maxArea;
 
-            src.delete(); gray.delete(); edges.delete();
+            src.delete();
+            gray.delete();
             contours.delete(); hierarchy.delete();
   window.ReactNativeWebView.postMessage(JSON.stringify({
     type: 'result',
