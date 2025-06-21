@@ -1,6 +1,6 @@
 /*
  * Вспомогательные функции работы с камерой и изображениями.
- * Симулирует анализ площади и контуров без использования OpenCV.
+ * Поставляет базовые операции обработки без генерации случайных значений.
  */
 import * as ImageManipulator from "expo-image-manipulator";
 import * as FileSystem from "expo-file-system";
@@ -12,57 +12,28 @@ import { Platform } from "react-native";
  * @param isLivePreview Флаг, указывающий на анализ в режиме превью
  * @returns Площадь листа в см²
  */
-export async function analyzeLeafArea(imageUri: string | null, isLivePreview: boolean): Promise<number> {
-  if (imageUri && Platform.OS !== 'web') {
-    try {
-      // Базовая обработка изображения с помощью expo-image-manipulator
-      // В реальной реализации с OpenCV здесь бы использовались cvtColor, GaussianBlur, Canny и т.д.
-      const manipulatedImage = await ImageManipulator.manipulateAsync(
-        imageUri,
-        [{ grayscale: true } as any],
-        { compress: 0.5, format: ImageManipulator.SaveFormat.JPEG }
-      );
-      
-      // Здесь должна быть реализация анализа с OpenCV:
-      // 1. Преобразование в оттенки серого (cv.cvtColor)
-      // 2. Размытие (cv.GaussianBlur)
-      // 3. Детекция границ (cv.Canny)
-      // 4. Поиск контуров (cv.findContours)
-      // 5. Вычисление площади (cv.contourArea)
-      // 6. Пересчет в см² по масштабу (например, 100 пикселей = 1 клетка = 10 мм²)
-      
-      console.log(`Обработанное изображение: ${manipulatedImage.uri}`);
-      
-      // Пока OpenCV недоступен в Expo, используем симуляцию
-      return simulateLeafArea(isLivePreview);
-    } catch (error) {
-      console.error("Ошибка при обработке изображения:", error);
-      return simulateLeafArea(isLivePreview);
-    }
+export async function analyzeLeafArea(imageUri: string | null, _isLivePreview: boolean): Promise<number> {
+  if (!imageUri || Platform.OS === 'web') {
+    throw new Error('analyzeLeafArea требует локальный URI изображения');
   }
-  
-  // Для live-preview или web используем симуляцию
-  return simulateLeafArea(isLivePreview);
+
+  try {
+    const manipulatedImage = await ImageManipulator.manipulateAsync(
+      imageUri,
+      [{ grayscale: true } as any],
+      { compress: 0.5, format: ImageManipulator.SaveFormat.JPEG }
+    );
+    console.log(`Обработанное изображение: ${manipulatedImage.uri}`);
+  } catch (error) {
+    console.error('Ошибка при обработке изображения:', error);
+    throw error;
+  }
+
+  // Реальная логика вычисления площади должна быть реализована через OpenCV
+  // Если OpenCV недоступен, вызывающий код обработает ошибку
+  return NaN;
 }
 
-/**
- * Симулирует площадь листа для демонстрации
- * @param isLivePreview Флаг, указывающий на анализ в режиме превью
- * @returns Симулированная площадь листа в см²
- */
-function simulateLeafArea(isLivePreview: boolean): number {
-  if (isLivePreview) {
-    // Для live-preview генерируем значения с небольшими колебаниями
-    const baseArea = 250; // базовая площадь в см²
-    const variation = 20; // вариация в см²
-    return baseArea + (Math.random() * variation * 2 - variation);
-  } else {
-    // Для финального снимка делаем более "точный" расчет
-    const baseArea = 250; // базовая площадь в см²
-    const smallVariation = 5; // меньшая вариация для "точного" измерения
-    return parseFloat((baseArea + (Math.random() * smallVariation * 2 - smallVariation)).toFixed(2));
-  }
-}
 
 /**
  * Находит контур листа на изображении
@@ -70,33 +41,12 @@ function simulateLeafArea(isLivePreview: boolean): number {
  * @returns Контур листа в формате массива точек
  */
 export async function findLeafContour(imageUri: string | null): Promise<{x: number, y: number}[]> {
-  // В реальной реализации с OpenCV здесь бы использовался cv.findContours
-  // для нахождения внешнего контура листа после обработки изображения
-  
-  // Пока OpenCV недоступен в Expo, используем симуляцию
-  return simulateLeafContour();
-}
-
-/**
- * Симулирует контур листа для демонстрации
- * @returns Симулированный контур листа
- */
-function simulateLeafContour(): {x: number, y: number}[] {
-  // Генерируем случайный контур в форме эллипса
-  const centerX = 200;
-  const centerY = 200;
-  const radiusX = 100;
-  const radiusY = 150;
-  const points = [];
-  
-  for (let angle = 0; angle < 360; angle += 10) {
-    const radians = angle * Math.PI / 180;
-    const x = centerX + radiusX * Math.cos(radians);
-    const y = centerY + radiusY * Math.sin(radians);
-    points.push({ x, y });
+  if (!imageUri || Platform.OS === 'web') {
+    throw new Error('findLeafContour требует локальный URI изображения');
   }
-  
-  return points;
+
+  // Здесь должна быть реализация поиска контура с помощью OpenCV
+  return [];
 }
 
 /**
