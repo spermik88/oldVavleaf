@@ -8,7 +8,7 @@ import { Platform } from "react-native";
 
 /**
  * Анализирует изображение и вычисляет площадь листа
- * @param imageUri URI изображения для анализа (null для симуляции)
+ * @param imageUri URI изображения для анализа (null недопустим и вызывает ошибку)
  * @param isLivePreview Флаг, указывающий на анализ в режиме превью
  * @returns Площадь листа в см²
  */
@@ -37,7 +37,7 @@ export async function analyzeLeafArea(imageUri: string | null, _isLivePreview: b
 
 /**
  * Находит контур листа на изображении
- * @param imageUri URI изображения (null для симуляции)
+ * @param imageUri URI изображения (null недопустим и вызывает ошибку)
  * @returns Контур листа в формате массива точек
  */
 export async function findLeafContour(imageUri: string | null): Promise<{x: number, y: number}[]> {
