@@ -77,31 +77,35 @@
             );
             let contourCount = contours.size();
             let markerFound = false;
-            let calculatedPxPerCell = pxPerCell;
             let markerRect = null;
+            let pixelsPerMm = 0;
 
             for (let i = 0; i < contours.size(); ++i) {
               const cnt = contours.get(i);
               if (cnt.data32S.length >= 8) {
                 const rect = cv.boundingRect(cnt);
                 const aspect = rect.width / rect.height;
-                if (
-                  aspect > 0.8 &&
-                  aspect < 1.2 &&
-                  rect.width > pxPerCell * 0.8 &&
-                  rect.width < pxPerCell * 1.2 &&
-                  rect.height > pxPerCell * 0.8 &&
-                  rect.height < pxPerCell * 1.2
-                ) {
-                  markerFound = true;
-                  calculatedPxPerCell = (rect.width + rect.height) / 2;
-                  markerRect = rect;
-                  break;
+                if (aspect > 0.8 && aspect < 1.2) {
+                  if (!markerRect || rect.width * rect.height < markerRect.width * markerRect.height) {
+                    markerFound = true;
+                    markerRect = rect;
+                  }
                 }
               }
             }
 
-            pxPerCell = calculatedPxPerCell;
+            if (markerFound && markerRect) {
+              pixelsPerMm = (markerRect.width + markerRect.height) / 2 / 5;
+              pxPerCell = pixelsPerMm * 5;
+            } else {
+              src.delete();
+              gray.delete();
+              contours.delete(); hierarchy.delete();
+              window.ReactNativeWebView.postMessage(
+                JSON.stringify({ type: 'error', message: 'Marker not found' })
+              );
+              return;
+            }
 
             if (debug) {
               ctx.lineWidth = 2;

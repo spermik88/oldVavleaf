@@ -92,6 +92,16 @@ export class OpenCvAnalyzer implements LeafAnalyzer {
     const item = this.queue[0];
     if (!item) return;
     console.error(`OpenCV error: ${message}`);
+    if (message === 'Marker not found') {
+      this.queue.shift();
+      Alert.alert('Ошибка OpenCV', 'Не найден маркер масштаба');
+      item.resolve({ area: NaN, contour: [], contourCount: 0, markerFound: false });
+      if (this.queue.length > 0) {
+        const next = this.queue[0];
+        void this.sendImage(next.base64, next.width, next.height);
+      }
+      return;
+    }
     item.attempts += 1;
     if (item.attempts < MAX_ATTEMPTS) {
       await this.sendImage(item.base64, item.width, item.height);
