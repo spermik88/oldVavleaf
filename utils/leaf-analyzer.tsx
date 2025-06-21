@@ -48,6 +48,7 @@ export class FallbackAnalyzer implements LeafAnalyzer {
 }
 
 export class OpenCvAnalyzer implements LeafAnalyzer {
+  private static readonly MAX_QUEUE_SIZE = 3;
   private ready = false;
   private queue: QueueItem[] = [];
   private fallback = new FallbackAnalyzer();
@@ -139,6 +140,20 @@ export class OpenCvAnalyzer implements LeafAnalyzer {
     isLive: boolean,
     type: "area" | "contour"
   ): Promise<{ area: number; contour: Point[]; contourCount: number; markerFound: boolean }> {
+    if (this.queue.length >= OpenCvAnalyzer.MAX_QUEUE_SIZE) {
+      if (type === "area") {
+        const area = await this.fallback.analyzeArea(imageUri, isLive);
+        return { area, contour: [], contourCount: 0, markerFound: false };
+      } else {
+        const contour = await this.fallback.findContour(imageUri);
+        return {
+          area: 0,
+          contour,
+          contourCount: contour.length,
+          markerFound: false,
+        };
+      }
+    }
     const base64 = await FileSystem.readAsStringAsync(imageUri, { encoding: FileSystem.EncodingType.Base64 });
     const { width, height } = await new Promise<{ width: number; height: number }>((resolve, reject) => {
       Image.getSize(imageUri, (w, h) => resolve({ width: w, height: h }), reject);
