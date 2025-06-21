@@ -32,6 +32,7 @@ import { useLeafStore } from "@/store/leaf-store";
 import { useSettingsStore } from "@/store/settings-store";
 import { saveImageWithExif } from "@/utils/image-utils";
 import { useVolumeButtonListener } from "@/hooks/use-volume-button";
+import * as FileSystem from "expo-file-system";
 
 const { width, height } = Dimensions.get("window");
 
@@ -172,11 +173,12 @@ useEffect(() => {
 const captureAndSend = async () => {
   if (!cameraReady || isCapturing || !isMounted) return;
   if (processingFrame) return;
+  let photo;
   try {
     setProcessingFrame(true);
 
     if (!cameraRef.current) return;
-    const photo = await cameraRef.current.takePictureAsync({
+    photo = await cameraRef.current.takePictureAsync({
       quality: 0.5,
       base64: true,
     });
@@ -192,6 +194,13 @@ const captureAndSend = async () => {
   } catch (error) {
     console.error("Ошибка при анализе кадра:", error);
   } finally {
+    if (photo?.uri) {
+      try {
+        await FileSystem.deleteAsync(photo.uri);
+      } catch (e) {
+        console.error("Ошибка при удалении временного фото:", e);
+      }
+    }
     if (isMounted) setProcessingFrame(false);
   }
 };
