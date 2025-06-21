@@ -184,9 +184,11 @@ const captureAndSend = async () => {
     if (!photo?.base64 || !photo?.width || !photo?.height) return;
 
     const area = await analyzer.analyzeArea(photo.uri, true);
-    const contour = await analyzer.findContour(photo.uri);
-    setLeafArea(area);
-    setContourPoints(contour);
+    if (!Number.isNaN(area)) {
+      const contour = await analyzer.findContour(photo.uri);
+      setLeafArea(area);
+      setContourPoints(contour);
+    }
   } catch (error) {
     console.error("Ошибка при анализе кадра:", error);
   } finally {
