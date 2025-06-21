@@ -164,7 +164,15 @@ export class OpenCvAnalyzer implements LeafAnalyzer {
   }
 }
 
-const LeafAnalyzerContext = createContext<LeafAnalyzer>(dummyAnalyzer);
+export type LeafAnalyzerContextValue = {
+  analyzer: LeafAnalyzer;
+  opencvError: boolean;
+};
+
+const LeafAnalyzerContext = createContext<LeafAnalyzerContextValue>({
+  analyzer: dummyAnalyzer,
+  opencvError: false,
+});
 
 export const LeafAnalyzerProvider = ({ children }: { children: React.ReactNode }) => {
   const webRef = useRef<OpenCVHandle>(null);
@@ -219,7 +227,7 @@ export const LeafAnalyzerProvider = ({ children }: { children: React.ReactNode }
   };
 
   return (
-    <LeafAnalyzerContext.Provider value={analyzer}>
+    <LeafAnalyzerContext.Provider value={{ analyzer, opencvError }}>
       {children}
       {analyzer instanceof OpenCvAnalyzer && !isOpenCvReady && !opencvError && (
         <View style={styles.initOverlay} pointerEvents="none">
@@ -239,7 +247,8 @@ export const LeafAnalyzerProvider = ({ children }: { children: React.ReactNode }
   );
 };
 
-export const useLeafAnalyzer = () => useContext(LeafAnalyzerContext);
+export const useLeafAnalyzer = (): LeafAnalyzerContextValue =>
+  useContext(LeafAnalyzerContext);
 
 const styles = StyleSheet.create({
   initOverlay: {
