@@ -36,7 +36,7 @@ import { useVolumeButtonListener } from "@/hooks/use-volume-button";
 const { width, height } = Dimensions.get("window");
 
 export default function CameraScreen() {
-  const analyzer = useLeafAnalyzer();
+  const { analyzer, opencvError } = useLeafAnalyzer();
   const [permission, requestPermission] = useCameraPermissions();
   const [locationPermission, requestLocationPermission] = Location.useForegroundPermissions();
   const [facing, setFacing] = useState<CameraType>("back");
@@ -546,6 +546,11 @@ const capturePhoto = async () => {
           </Pressable>
         </View>
       </CameraView>
+      {opencvError && (
+        <View style={styles.errorBanner} pointerEvents="none">
+          <Text style={styles.errorText}>OpenCV не инициализирован</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -579,6 +584,21 @@ const styles = StyleSheet.create({
   },
   permissionButtonText: {
     color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  errorBanner: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: Colors.status.error,
+    paddingVertical: 10,
+    alignItems: "center",
+    zIndex: 30,
+  },
+  errorText: {
+    color: Colors.text.primary,
     fontSize: 16,
     fontWeight: "bold",
   },

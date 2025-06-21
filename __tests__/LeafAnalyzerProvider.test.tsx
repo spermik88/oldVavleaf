@@ -60,7 +60,7 @@ describe('LeafAnalyzerProvider', () => {
     mockWaitUntilReady.mockImplementation(() => new Promise(() => {}));
 
     const TestChild = () => {
-      const analyzer = useLeafAnalyzer();
+      const { analyzer } = useLeafAnalyzer();
       return (
         <Text testID="type">
           {analyzer instanceof analyzerModule.OpenCvAnalyzer ? 'opencv' : 'other'}
@@ -77,6 +77,28 @@ describe('LeafAnalyzerProvider', () => {
     await waitFor(() => {
       expect(queryByText('Инициализация…')).toBeNull();
       expect(getByTestId('type').props.children).toBe('opencv');
+    });
+  });
+
+  it('shows error banner on OpenCV load error', async () => {
+    (global as any).triggerError = true;
+    mockWaitUntilReady.mockImplementation(() => new Promise(() => {}));
+
+    const Banner = () => {
+      const { opencvError } = useLeafAnalyzer();
+      return opencvError ? (
+        <Text testID="banner">OpenCV не инициализирован</Text>
+      ) : null;
+    };
+
+    const { getByTestId } = render(
+      <LeafAnalyzerProvider>
+        <Banner />
+      </LeafAnalyzerProvider>
+    );
+
+    await waitFor(() => {
+      expect(getByTestId('banner')).toBeTruthy();
     });
   });
 });
