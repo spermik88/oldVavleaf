@@ -34,6 +34,7 @@ import { useLeafStore } from "@/store/leaf-store";
 import * as FileSystem from "expo-file-system";
 import * as DocumentPicker from "expo-document-picker";
 import * as Sharing from "expo-sharing";
+import { ensureImageDir } from "@/utils/image-utils";
 
 export default function SettingsScreen() {
   const { 
@@ -61,7 +62,7 @@ export default function SettingsScreen() {
           onPress: async () => {
             try {
               // Удаляем все файлы
-              const dirUri = `${FileSystem.documentDirectory}листы/`;
+              const dirUri = await ensureImageDir();
               const dirInfo = await FileSystem.getInfoAsync(dirUri);
               
               if (dirInfo.exists) {
@@ -147,13 +148,7 @@ export default function SettingsScreen() {
         throw new Error("Неверный формат данных");
       }
       
-      // Создаем директорию для сохранения, если она не существует
-      const dirUri = `${FileSystem.documentDirectory}листы/`;
-      const dirInfo = await FileSystem.getInfoAsync(dirUri);
-      
-      if (!dirInfo.exists) {
-        await FileSystem.makeDirectoryAsync(dirUri, { intermediates: true });
-      }
+      const dirUri = await ensureImageDir();
       
       // Обновляем хранилище
       setCapturedImages(importedData.images);
