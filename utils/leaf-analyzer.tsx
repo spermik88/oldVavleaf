@@ -19,6 +19,7 @@ import Colors from "@/constants/colors";
 import { Platform } from "react-native";
 
 const MAX_ATTEMPTS = 5;
+const ALERT_INTERVAL_MS = 2000; // минимальный интервал между всплывающими сообщениями
 
 type QueueItem = {
   resolve: (
@@ -51,6 +52,8 @@ export class OpenCvAnalyzer implements LeafAnalyzer {
   private static readonly MAX_QUEUE_SIZE = 3;
   private ready = false;
   private queue: QueueItem[] = [];
+  private lastAlertMessage: string | null = null;
+  private lastAlertTime = 0;
   constructor(private webRef: React.RefObject<OpenCVHandle | null>) {}
 
   private async sendImage(base64: string, width: number, height: number) {
@@ -88,13 +91,26 @@ export class OpenCvAnalyzer implements LeafAnalyzer {
     }
   }
 
+  private showAlert(title: string, message: string) {
+    const now = Date.now();
+    if (
+      this.lastAlertMessage === message &&
+      now - this.lastAlertTime < ALERT_INTERVAL_MS
+    ) {
+      return;
+    }
+    this.lastAlertMessage = message;
+    this.lastAlertTime = now;
+    Alert.alert(title, message);
+  }
+
   async handleError(message: string) {
     const item = this.queue[0];
     if (!item) return;
     console.error(`OpenCV error: ${message}`);
     if (message === 'Marker not found') {
       this.queue.shift();
-      Alert.alert('Ошибка OpenCV', 'Не найден маркер масштаба');
+      this.showAlert('Ошибка OpenCV', 'Не найден маркер масштаба');
       item.resolve({ area: NaN, contour: [], contourCount: 0, markerFound: false });
       if (this.queue.length > 0) {
         const next = this.queue[0];
@@ -108,7 +124,7 @@ export class OpenCvAnalyzer implements LeafAnalyzer {
       return;
     }
     this.queue.shift();
-    Alert.alert('Ошибка OpenCV', 'Не удалось обработать кадр');
+    this.showAlert('Ошибка OpenCV', 'Не удалось обработать кадр');
     item.resolve({ area: NaN, contour: [], contourCount: 0, markerFound: false });
     if (this.queue.length > 0) {
       const next = this.queue[0];
