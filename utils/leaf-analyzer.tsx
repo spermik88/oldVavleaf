@@ -11,7 +11,7 @@ export interface LeafAnalyzer {
 export type Point = { x: number; y: number };
 
 import * as FileSystem from "expo-file-system";
-import { Image, Alert, ActivityIndicator, View, Text, StyleSheet } from "react-native";
+import { Image, Alert, ActivityIndicator, View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import OpenCVWorker, { OpenCVHandle } from "@/components/OpenCVWorker";
 import { analyzeLeafArea, findLeafContour } from "@/utils/camera-utils";
 import React, { createContext, useContext, useRef, useState, useEffect } from "react";
@@ -190,6 +190,7 @@ export const LeafAnalyzerProvider = ({ children }: { children: React.ReactNode }
 
   const [isOpenCvReady, setIsOpenCvReady] = useState(Platform.OS === "web");
   const [opencvError, setOpenCvError] = useState(false);
+  const [workerKey, setWorkerKey] = useState(0);
 
   useEffect(() => {
     if (analyzer instanceof OpenCvAnalyzer && !opencvError) {
@@ -226,6 +227,13 @@ export const LeafAnalyzerProvider = ({ children }: { children: React.ReactNode }
     }
   };
 
+  const handleRetry = () => {
+    setOpenCvError(false);
+    setIsOpenCvReady(Platform.OS === 'web');
+    setAnalyzer(() => new OpenCvAnalyzer(webRef));
+    setWorkerKey((k) => k + 1);
+  };
+
   return (
     <LeafAnalyzerContext.Provider value={{ analyzer, opencvError }}>
       {children}
@@ -235,8 +243,16 @@ export const LeafAnalyzerProvider = ({ children }: { children: React.ReactNode }
           <Text style={styles.initText}>Инициализация…</Text>
         </View>
       )}
+      {opencvError && (
+        <View style={styles.errorOverlay}>
+          <TouchableOpacity style={styles.retryButton} onPress={handleRetry}>
+            <Text style={styles.retryText}>Повторить</Text>
+          </TouchableOpacity>
+        </View>
+      )}
       {analyzer instanceof OpenCvAnalyzer && (
         <OpenCVWorker
+          key={workerKey}
           ref={webRef}
           onResult={onResult}
           onError={onError}
@@ -260,6 +276,24 @@ const styles = StyleSheet.create({
   },
   initText: {
     marginTop: 8,
+    color: Colors.text.primary,
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  errorOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 101,
+  },
+  retryButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    backgroundColor: Colors.primary + '80',
+  },
+  retryText: {
     color: Colors.text.primary,
     fontSize: 16,
     fontWeight: '500',
