@@ -55,7 +55,7 @@ describe('LeafAnalyzerProvider', () => {
     await waitFor(() => expect(spy).toHaveBeenCalled());
   });
 
-  it('uses fallback analyzer on OpenCV load error', async () => {
+  it('keeps OpenCvAnalyzer on OpenCV load error', async () => {
     (global as any).triggerError = true;
     mockWaitUntilReady.mockImplementation(() => new Promise(() => {}));
 
@@ -63,7 +63,7 @@ describe('LeafAnalyzerProvider', () => {
       const analyzer = useLeafAnalyzer();
       return (
         <Text testID="type">
-          {analyzer instanceof analyzerModule.FallbackAnalyzer ? 'fallback' : 'other'}
+          {analyzer instanceof analyzerModule.OpenCvAnalyzer ? 'opencv' : 'other'}
         </Text>
       );
     };
@@ -76,7 +76,7 @@ describe('LeafAnalyzerProvider', () => {
 
     await waitFor(() => {
       expect(queryByText('Инициализация…')).toBeNull();
-      expect(getByTestId('type').props.children).toBe('fallback');
+      expect(getByTestId('type').props.children).toBe('opencv');
     });
   });
 });
