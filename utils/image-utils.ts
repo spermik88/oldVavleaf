@@ -6,6 +6,35 @@ import * as FileSystem from "expo-file-system";
 import * as ImageManipulator from "expo-image-manipulator";
 import { Platform } from "react-native";
 
+const OLD_DIR_NAME = "листы";
+const NEW_DIR_NAME = "leafs";
+
+export async function ensureImageDir(): Promise<string> {
+  const oldDirUri = `${FileSystem.documentDirectory}${OLD_DIR_NAME}/`;
+  const newDirUri = `${FileSystem.documentDirectory}${NEW_DIR_NAME}/`;
+
+  const newDirInfo = await FileSystem.getInfoAsync(newDirUri);
+  if (!newDirInfo.exists) {
+    const oldDirInfo = await FileSystem.getInfoAsync(oldDirUri);
+    if (oldDirInfo.exists) {
+      await FileSystem.makeDirectoryAsync(newDirUri, { intermediates: true });
+      const files = await FileSystem.readDirectoryAsync(oldDirUri);
+      await Promise.all(
+        files.map((file) =>
+          FileSystem.copyAsync({
+            from: `${oldDirUri}${file}`,
+            to: `${newDirUri}${file}`,
+          })
+        )
+      );
+    } else {
+      await FileSystem.makeDirectoryAsync(newDirUri, { intermediates: true });
+    }
+  }
+
+  return newDirUri;
+}
+
 /**
  * Сохраняет изображение с EXIF-данными
  * @param imageUri URI исходного изображения
@@ -21,17 +50,7 @@ export async function saveImageWithExif(
   location: { latitude: number; longitude: number } | null
 ): Promise<string> {
   try {
-    // Создаем директорию для сохранения, если она не существует
-    const dirUri = `${FileSystem.documentDirectory}листы/`;
-
-    try {
-      const dirInfo = await FileSystem.getInfoAsync(dirUri);
-      if (!dirInfo.exists) {
-        await FileSystem.makeDirectoryAsync(dirUri, { intermediates: true });
-      }
-    } catch (error) {
-      console.error("Ошибка при создании директории:", error);
-    }
+    const dirUri = await ensureImageDir();
 
     const destinationUri = `${dirUri}${filename}`;
 
