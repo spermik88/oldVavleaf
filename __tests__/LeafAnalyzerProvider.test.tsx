@@ -4,7 +4,7 @@
  * Проверяет обработку результата WebView.
  */
 import React from 'react';
-import { render, waitFor } from '@testing-library/react-native';
+import { render, waitFor, fireEvent } from '@testing-library/react-native';
 import { Text } from 'react-native';
 import { LeafAnalyzerProvider, useLeafAnalyzer } from '../utils/leaf-analyzer';
 import * as analyzerModule from '../utils/leaf-analyzer';
@@ -100,6 +100,28 @@ describe('LeafAnalyzerProvider', () => {
     await waitFor(() => {
       expect(getByTestId('banner')).toBeTruthy();
     });
+  });
+
+  it('retries initialization after error', async () => {
+    (global as any).triggerError = true;
+    mockWaitUntilReady.mockImplementation(() => new Promise(() => {}));
+
+    const spy = jest.spyOn(analyzerModule.OpenCvAnalyzer.prototype, 'handleResult');
+
+    const { getByText } = render(
+      <LeafAnalyzerProvider>
+        <></>
+      </LeafAnalyzerProvider>
+    );
+
+    await waitFor(() => getByText('Повторить'));
+
+    (global as any).triggerError = false;
+    mockWaitUntilReady.mockImplementation(() => Promise.resolve());
+
+    fireEvent.press(getByText('Повторить'));
+
+    await waitFor(() => expect(spy).toHaveBeenCalled());
   });
 });
 
