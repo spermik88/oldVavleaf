@@ -171,6 +171,7 @@ useEffect(() => {
 
 const captureAndSend = async () => {
   if (!cameraReady || isCapturing || !isMounted) return;
+  if (processingFrame) return;
   try {
     setProcessingFrame(true);
 
